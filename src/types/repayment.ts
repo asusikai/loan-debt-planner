@@ -7,6 +7,8 @@ export type Debt = {
   maturityDate?: string;
 };
 
+export type EditableDebt = Debt & { id: string };
+
 export type ScenarioInput = {
   monthlyBudget: number;
   extraPayment: number;

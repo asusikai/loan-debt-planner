@@ -1,6 +1,4 @@
-import type { Debt } from "@/types/repayment";
-
-export type EditableDebt = Debt & { id: string };
+import type { EditableDebt } from "@/types/repayment";
 
 type DebtListProps = {
   debts: EditableDebt[];

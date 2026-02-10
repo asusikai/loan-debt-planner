@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { DebtList, type EditableDebt } from "@/app/components/debt-list";
+import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
+import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
-import type { StrategyResult } from "@/types/repayment";
+import type { EditableDebt, StrategyResult } from "@/types/repayment";
 
 const initialDebts: EditableDebt[] = [
   {
@@ -58,6 +59,18 @@ export default function HomePage() {
     snowball: StrategyResult;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const { storageWarning, clearStorageWarning, loadDebts, saveDebts, deleteDebt } = useDebtStorage();
+
+  useEffect(() => {
+    const storedDebts = loadDebts();
+    if (storedDebts.length > 0) {
+      setDebts(storedDebts);
+    }
+  }, [loadDebts]);
+
+  useEffect(() => {
+    saveDebts(debts);
+  }, [debts, saveDebts]);
 
   const totalMinimum = useMemo(
     () => debts.reduce((sum, debt) => sum + debt.minimumPayment, 0),
@@ -158,7 +171,7 @@ export default function HomePage() {
   }
 
   function handleDeleteDebt(id: string) {
-    setDebts((prev) => prev.filter((debt) => debt.id !== id));
+    setDebts((prev) => deleteDebt(id, prev));
     if (editingId === id) {
       resetForm();
     }
@@ -204,6 +217,14 @@ export default function HomePage() {
     <main>
       <h1>DebtPilot</h1>
       <p className="muted">채무 입력 후 상환 전략을 비교해 총이자와 완납 기간을 확인하세요.</p>
+      {storageWarning ? (
+        <p className="storage-warning" role="status">
+          {storageWarning}
+          <button type="button" className="ghost small" onClick={clearStorageWarning}>
+            닫기
+          </button>
+        </p>
+      ) : null}
 
       <div className="layout-grid">
         <section className="card">
