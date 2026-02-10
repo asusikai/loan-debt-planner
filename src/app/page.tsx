@@ -6,6 +6,7 @@ import { ConfirmationDialog } from "@/app/components/confirmation-dialog";
 import { BudgetForm } from "@/app/components/budget-form";
 import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
+import { PaymentTable } from "@/app/components/payment-table";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
@@ -362,32 +363,7 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>월</th>
-                      <th>채무</th>
-                      <th>납입액</th>
-                      <th>이자</th>
-                      <th>원금상환</th>
-                      <th>월말잔액</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activePlan?.slice(0, 120).map((item, index) => (
-                      <tr key={`${item.monthIndex}-${item.debtName}-${index}`}>
-                        <td>{item.monthIndex}</td>
-                        <td>{item.debtName}</td>
-                        <td>{toCurrency(item.paymentAmount)}</td>
-                        <td>{toCurrency(item.interestAmount)}</td>
-                        <td>{toCurrency(item.principalAmount)}</td>
-                        <td>{toCurrency(item.remainingBalance)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <PaymentTable monthlyPlans={activePlan?.slice(0, 120) ?? []} />
             </>
           ) : null}
         </section>

@@ -246,6 +246,16 @@ table {
   min-width: 720px;
 }
 
+.nested-table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+}
+
+.payoff-month {
+  background: #edfdf3;
+}
+
 th,
 td {
   padding: 10px;
