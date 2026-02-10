@@ -13,6 +13,8 @@ type DebtForm = {
   balance: string;
   annualRatePercent: string;
   minimumPayment: string;
+  maturityDate: string;
+  prepaymentFeeRatePercent: string;
 };
 
 const initialDebts: EditableDebt[] = [
@@ -37,6 +39,8 @@ const emptyForm: DebtForm = {
   balance: "",
   annualRatePercent: "",
   minimumPayment: "",
+  maturityDate: "",
+  prepaymentFeeRatePercent: "",
 };
 
 function toNumber(value: string): number {
@@ -88,6 +92,12 @@ export default function HomePage() {
     const balance = Math.floor(toNumber(form.balance));
     const annualRatePercent = toNumber(form.annualRatePercent);
     const minimumPayment = Math.floor(toNumber(form.minimumPayment));
+    const maturityDate = form.maturityDate.trim();
+    const prepaymentFeeRatePercentInput = form.prepaymentFeeRatePercent.trim();
+    const prepaymentFeeRatePercent =
+      prepaymentFeeRatePercentInput === ""
+        ? undefined
+        : toNumber(prepaymentFeeRatePercentInput);
 
     if (!name) {
       setErrorMessage("채무명은 필수입니다.");
@@ -99,12 +109,22 @@ export default function HomePage() {
       return;
     }
 
+    if (prepaymentFeeRatePercent !== undefined && prepaymentFeeRatePercent < 0) {
+      setErrorMessage("중도상환수수료율은 0 이상이어야 합니다.");
+      return;
+    }
+
     const payload: EditableDebt = {
       id: editingId ?? `debt-${Date.now()}`,
       name,
       balance,
       annualRate: annualRatePercent / 100,
       minimumPayment,
+      maturityDate: maturityDate || undefined,
+      prepaymentFeeRate:
+        prepaymentFeeRatePercent !== undefined
+          ? prepaymentFeeRatePercent / 100
+          : undefined,
     };
 
     setDebts((prev) => {
@@ -130,6 +150,11 @@ export default function HomePage() {
       balance: String(target.balance),
       annualRatePercent: (target.annualRate * 100).toFixed(2),
       minimumPayment: String(target.minimumPayment),
+      maturityDate: target.maturityDate ?? "",
+      prepaymentFeeRatePercent:
+        target.prepaymentFeeRate !== undefined
+          ? (target.prepaymentFeeRate * 100).toFixed(2)
+          : "",
     });
     setErrorMessage("");
   }
@@ -221,6 +246,27 @@ export default function HomePage() {
                 placeholder="200000"
               />
             </label>
+            <label>
+              만기(선택)
+              <input
+                type="date"
+                value={form.maturityDate}
+                onChange={(event) => setForm((prev) => ({ ...prev, maturityDate: event.target.value }))}
+              />
+            </label>
+            <label>
+              중도상환수수료율(%, 선택)
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.prepaymentFeeRatePercent}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, prepaymentFeeRatePercent: event.target.value }))
+                }
+                placeholder="1.0"
+              />
+            </label>
             <div className="form-actions">
               <button type="submit">{editingId ? "채무 수정" : "채무 추가"}</button>
               {editingId ? (
@@ -239,13 +285,15 @@ export default function HomePage() {
                   <th>잔액</th>
                   <th>연이율</th>
                   <th>최소납입액</th>
+                  <th>만기</th>
+                  <th>중도상환수수료율</th>
                   <th>액션</th>
                 </tr>
               </thead>
               <tbody>
                 {debts.length === 0 ? (
                   <tr>
-                    <td colSpan={5}>채무가 없습니다.</td>
+                    <td colSpan={7}>채무가 없습니다.</td>
                   </tr>
                 ) : (
                   debts.map((debt) => (
@@ -254,6 +302,12 @@ export default function HomePage() {
                       <td>{toCurrency(debt.balance)}</td>
                       <td>{(debt.annualRate * 100).toFixed(2)}%</td>
                       <td>{toCurrency(debt.minimumPayment)}</td>
+                      <td>{debt.maturityDate ?? "-"}</td>
+                      <td>
+                        {debt.prepaymentFeeRate !== undefined
+                          ? `${(debt.prepaymentFeeRate * 100).toFixed(2)}%`
+                          : "-"}
+                      </td>
                       <td>
                         <button
                           type="button"
