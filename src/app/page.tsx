@@ -335,11 +335,13 @@ export default function HomePage() {
                   <h3>Avalanche</h3>
                   <p>총이자: {toCurrency(results.avalanche.totalInterest)}</p>
                   <p>완납 개월: {results.avalanche.monthsToPayoff}개월</p>
+                  <p>완납 예정: {results.avalanche.payoffDate}</p>
                 </article>
                 <article className="result-card">
                   <h3>Snowball</h3>
                   <p>총이자: {toCurrency(results.snowball.totalInterest)}</p>
                   <p>완납 개월: {results.snowball.monthsToPayoff}개월</p>
+                  <p>완납 예정: {results.snowball.payoffDate}</p>
                 </article>
               </div>
 

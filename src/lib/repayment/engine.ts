@@ -11,6 +11,12 @@ type WorkingDebt = Debt & { remainingBalance: number };
 
 const MAX_MONTHS = 1200;
 
+function calculatePayoffDate(monthsToPayoff: number): string {
+  const today = new Date();
+  const payoff = new Date(today.getFullYear(), today.getMonth() + monthsToPayoff, 1);
+  return `${payoff.getFullYear()}-${String(payoff.getMonth() + 1).padStart(2, "0")}`;
+}
+
 function calculateMonthlyInterest(balance: number, annualRate: number): number {
   return Math.floor((balance * annualRate) / 12);
 }
@@ -108,6 +114,7 @@ export function simulateStrategy(
     strategy,
     totalInterest,
     monthsToPayoff: monthIndex,
+    payoffDate: calculatePayoffDate(monthIndex),
     monthlyPlans,
   };
 }

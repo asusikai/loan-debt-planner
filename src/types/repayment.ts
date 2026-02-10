@@ -30,5 +30,6 @@ export type StrategyResult = {
   strategy: StrategyType;
   totalInterest: number;
   monthsToPayoff: number;
+  payoffDate: string;
   monthlyPlans: MonthlyPlanItem[];
 };
