@@ -3,7 +3,7 @@ import type { EditableDebt } from "@/types/repayment";
 type DebtListProps = {
   debts: EditableDebt[];
   onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (debt: EditableDebt, trigger: HTMLButtonElement) => void;
   onAddNew?: () => void;
 };
 
@@ -78,7 +78,11 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
                   <button type="button" className="small" onClick={() => onEdit(debt.id)}>
                     수정
                   </button>
-                  <button type="button" className="small danger" onClick={() => onDelete(debt.id)}>
+                  <button
+                    type="button"
+                    className="small danger"
+                    onClick={(event) => onDelete(debt, event.currentTarget)}
+                  >
                     삭제
                   </button>
                 </td>
@@ -103,7 +107,11 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               <button type="button" onClick={() => onEdit(debt.id)}>
                 수정
               </button>
-              <button type="button" className="danger" onClick={() => onDelete(debt.id)}>
+              <button
+                type="button"
+                className="danger"
+                onClick={(event) => onDelete(debt, event.currentTarget)}
+              >
                 삭제
               </button>
             </div>

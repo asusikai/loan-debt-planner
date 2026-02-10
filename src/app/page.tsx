@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { ConfirmationDialog } from "@/app/components/confirmation-dialog";
 import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
@@ -54,6 +55,8 @@ export default function HomePage() {
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
     "avalanche",
   );
+  const [debtPendingDeletion, setDebtPendingDeletion] = useState<EditableDebt | null>(null);
+  const [deleteTriggerButton, setDeleteTriggerButton] = useState<HTMLButtonElement | null>(null);
   const [results, setResults] = useState<{
     avalanche: StrategyResult;
     snowball: StrategyResult;
@@ -170,11 +173,28 @@ export default function HomePage() {
     setErrorMessage("");
   }
 
-  function handleDeleteDebt(id: string) {
-    setDebts((prev) => deleteDebt(id, prev));
-    if (editingId === id) {
+  function requestDeleteDebt(debt: EditableDebt, trigger: HTMLButtonElement) {
+    setDebtPendingDeletion(debt);
+    setDeleteTriggerButton(trigger);
+  }
+
+  function cancelDeleteDebt() {
+    setDebtPendingDeletion(null);
+    setDeleteTriggerButton(null);
+  }
+
+  function confirmDeleteDebt() {
+    if (!debtPendingDeletion) {
+      return;
+    }
+
+    setDebts((prev) => deleteDebt(debtPendingDeletion.id, prev));
+    if (editingId === debtPendingDeletion.id) {
       resetForm();
     }
+
+    setDebtPendingDeletion(null);
+    setDeleteTriggerButton(null);
   }
 
   function handleAddDebt() {
@@ -239,7 +259,7 @@ export default function HomePage() {
           <DebtList
             debts={debts}
             onEdit={handleEditDebt}
-            onDelete={handleDeleteDebt}
+            onDelete={requestDeleteDebt}
             onAddNew={handleAddDebt}
           />
         </section>
@@ -335,6 +355,20 @@ export default function HomePage() {
           ) : null}
         </section>
       </div>
+      <ConfirmationDialog
+        isOpen={Boolean(debtPendingDeletion)}
+        title="채무 삭제 확인"
+        description={
+          debtPendingDeletion
+            ? `정말로 ${debtPendingDeletion.name} 채무를 삭제하시겠습니까?`
+            : ""
+        }
+        confirmLabel="삭제"
+        cancelLabel="취소"
+        onConfirm={confirmDeleteDebt}
+        onCancel={cancelDeleteDebt}
+        restoreFocusTo={deleteTriggerButton}
+      />
     </main>
   );
 }
