@@ -1,21 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { FormEvent } from "react";
 
+import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { simulateStrategy } from "@/lib/repayment/engine";
 import type { Debt, StrategyResult } from "@/types/repayment";
 
 type EditableDebt = Debt & { id: string };
-
-type DebtForm = {
-  name: string;
-  balance: string;
-  annualRatePercent: string;
-  minimumPayment: string;
-  maturityDate: string;
-  prepaymentFeeRatePercent: string;
-};
 
 const initialDebts: EditableDebt[] = [
   {
@@ -34,7 +25,7 @@ const initialDebts: EditableDebt[] = [
   },
 ];
 
-const emptyForm: DebtForm = {
+const emptyForm: DebtFormValues = {
   name: "",
   balance: "",
   annualRatePercent: "",
@@ -57,7 +48,6 @@ function toCurrency(value: number): string {
 
 export default function HomePage() {
   const [debts, setDebts] = useState<EditableDebt[]>(initialDebts);
-  const [form, setForm] = useState<DebtForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState("700000");
   const [extraPayment, setExtraPayment] = useState("100000");
@@ -80,20 +70,40 @@ export default function HomePage() {
       ? results?.avalanche.monthlyPlans
       : results?.snowball.monthlyPlans;
 
+  const editingDebt = useMemo(
+    () => debts.find((debt) => debt.id === editingId) ?? null,
+    [debts, editingId],
+  );
+
+  const formInitialValues = useMemo<DebtFormValues>(() => {
+    if (!editingDebt) {
+      return emptyForm;
+    }
+
+    return {
+      name: editingDebt.name,
+      balance: String(editingDebt.balance),
+      annualRatePercent: (editingDebt.annualRate * 100).toFixed(2),
+      minimumPayment: String(editingDebt.minimumPayment),
+      maturityDate: editingDebt.maturityDate ?? "",
+      prepaymentFeeRatePercent:
+        editingDebt.prepaymentFeeRate !== undefined
+          ? (editingDebt.prepaymentFeeRate * 100).toFixed(2)
+          : "",
+    };
+  }, [editingDebt]);
+
   function resetForm() {
-    setForm(emptyForm);
     setEditingId(null);
   }
 
-  function handleSubmitDebt(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const name = form.name.trim();
-    const balance = Math.floor(toNumber(form.balance));
-    const annualRatePercent = toNumber(form.annualRatePercent);
-    const minimumPayment = Math.floor(toNumber(form.minimumPayment));
-    const maturityDate = form.maturityDate.trim();
-    const prepaymentFeeRatePercentInput = form.prepaymentFeeRatePercent.trim();
+  function handleSubmitDebt(formValues: DebtFormValues) {
+    const name = formValues.name.trim();
+    const balance = Math.floor(toNumber(formValues.balance));
+    const annualRatePercent = toNumber(formValues.annualRatePercent);
+    const minimumPayment = Math.floor(toNumber(formValues.minimumPayment));
+    const maturityDate = formValues.maturityDate.trim();
+    const prepaymentFeeRatePercentInput = formValues.prepaymentFeeRatePercent.trim();
     const prepaymentFeeRatePercent =
       prepaymentFeeRatePercentInput === ""
         ? undefined
@@ -145,17 +155,6 @@ export default function HomePage() {
     }
 
     setEditingId(target.id);
-    setForm({
-      name: target.name,
-      balance: String(target.balance),
-      annualRatePercent: (target.annualRate * 100).toFixed(2),
-      minimumPayment: String(target.minimumPayment),
-      maturityDate: target.maturityDate ?? "",
-      prepaymentFeeRatePercent:
-        target.prepaymentFeeRate !== undefined
-          ? (target.prepaymentFeeRate * 100).toFixed(2)
-          : "",
-    });
     setErrorMessage("");
   }
 
@@ -205,77 +204,12 @@ export default function HomePage() {
       <div className="layout-grid">
         <section className="card">
           <h2>채무 입력/수정/삭제</h2>
-          <form className="form-grid" onSubmit={handleSubmitDebt}>
-            <label>
-              채무명
-              <input
-                value={form.name}
-                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                placeholder="예: 신용대출A"
-              />
-            </label>
-            <label>
-              잔액(원)
-              <input
-                type="number"
-                value={form.balance}
-                onChange={(event) => setForm((prev) => ({ ...prev, balance: event.target.value }))}
-                placeholder="5000000"
-              />
-            </label>
-            <label>
-              연이율(%)
-              <input
-                type="number"
-                step="0.01"
-                value={form.annualRatePercent}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, annualRatePercent: event.target.value }))
-                }
-                placeholder="8.2"
-              />
-            </label>
-            <label>
-              최소납입액(원)
-              <input
-                type="number"
-                value={form.minimumPayment}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, minimumPayment: event.target.value }))
-                }
-                placeholder="200000"
-              />
-            </label>
-            <label>
-              만기(선택)
-              <input
-                type="date"
-                value={form.maturityDate}
-                onChange={(event) => setForm((prev) => ({ ...prev, maturityDate: event.target.value }))}
-              />
-            </label>
-            <label>
-              중도상환수수료율(%, 선택)
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.prepaymentFeeRatePercent}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, prepaymentFeeRatePercent: event.target.value }))
-                }
-                placeholder="1.0"
-              />
-            </label>
-            <div className="form-actions">
-              <button type="submit">{editingId ? "채무 수정" : "채무 추가"}</button>
-              {editingId ? (
-                <button type="button" className="ghost" onClick={resetForm}>
-                  수정 취소
-                </button>
-              ) : null}
-            </div>
-          </form>
+          <DebtForm
+            mode={editingId ? "edit" : "create"}
+            initialValues={formInitialValues}
+            onSubmit={handleSubmitDebt}
+            onCancel={resetForm}
+          />
 
           <div className="table-wrap" style={{ marginTop: 16 }}>
             <table>
