@@ -1,0 +1,143 @@
+<context>
+# Overview
+DebtPilot은 다중 채무를 가진 사회초년생이 제한된 월 상환 가능 금액 안에서 상환 우선순위를 합리적으로 결정할 수 있도록 돕는 웹앱이다. 사용자가 채무 정보를 입력하면 Avalanche(고금리 우선)와 Snowball(소액잔액 우선) 전략을 시뮬레이션해 총이자, 완납 시점, 월별 상환 계획을 비교 제공한다. 핵심 가치는 "직관이 아닌 수치 기반 상환 의사결정"이다.
+
+# Core Features
+1. 채무 등록/수정/삭제
+- What: 채무명, 잔액, 연이율, 최소납입액, 만기(선택), 중도상환수수료율(선택)을 입력/관리
+- Why: 다중 채무 비교의 정확한 입력 기반 확보
+- How: 입력 폼 + 유효성 검증 + 목록 테이블에서 편집/삭제
+
+2. 월 상환 가능 금액/추가 상환 금액 설정
+- What: 월 예산과 추가 상환 금액 입력
+- Why: 현실적인 현금흐름 제약 반영
+- How: 예산 입력값을 시나리오 객체로 변환해 전략 시뮬레이션에 전달
+
+3. 상환 전략 시뮬레이션 (Avalanche/Snowball)
+- What: 동일 입력에 대해 두 전략 결과 계산
+- Why: 비용 최소화와 심리적 동기 전략을 동시에 비교 가능
+- How: 순수 함수 기반 계산 엔진에서 전략 우선순위만 바꿔 동일 로직 실행
+
+4. 전략 비교 결과 제공
+- What: 총이자, 완납 개월 수, 완납 예상일 비교
+- Why: 사용자 목표(비용 절감 vs 기간 단축)에 맞는 선택 지원
+- How: 결과 카드/비교 영역에서 전략별 주요 지표를 나란히 표시
+
+5. 월별 상환 계획표
+- What: 월/채무별 납입액, 이자, 원금, 잔액 제공
+- Why: 실행 가능한 월별 액션 플랜 제공
+- How: 계산 엔진의 월별 산출물을 표 형태로 렌더링
+
+6. 오류/예외 처리
+- What: 월 예산 부족, 잘못된 입력, 계산 실패 안내
+- Why: 신뢰성 있는 사용자 경험 보장
+- How: 검증 실패 시 명확한 에러 메시지와 계산 차단
+
+# User Experience
+- User personas
+  - 페르소나 A: 27세 직장인, 다중 채무 3건, 월 상환 여력 70만원
+  - 페르소나 B: 31세 프리랜서, 수입 변동성 높음, 월 예산 조정 빈번
+
+- Key user flows
+  1) 채무/예산 입력 -> 2) 전략 계산 실행 -> 3) 전략별 핵심 지표 비교 -> 4) 월별 계획표 확인 -> 5) 실행 전략 선택
+
+- UI/UX considerations
+  - 핵심 지표(총이자/완납기간)를 첫 화면에서 즉시 확인 가능해야 함
+  - 입력 오류는 항목별로 명확히 안내
+  - 동일 조건 입력 시 동일 결과를 반환하는 결정적 계산 경험 제공
+  - 모바일/데스크톱 모두에서 입력-비교-확인 흐름이 끊기지 않아야 함
+</context>
+<PRD>
+# Technical Architecture
+- System components
+  - Frontend: Next.js App Router 기반 단일 웹앱 (`src/app/page.tsx` 중심)
+  - Domain Engine: 전략 시뮬레이션 순수 함수 (`src/lib/repayment/engine.ts`)
+  - Strategy Module: 정렬/우선순위 규칙 (`src/lib/repayment/strategies.ts`)
+  - Validation: 입력 스키마 및 검증 로직 (`Zod`, `src/lib/validation/*`)
+  - Types: Debt/Scenario/Result 타입 모델 (`src/types/repayment.ts`)
+
+- Data models
+  - Debt: name, balance, annualRate, minimumPayment, maturityDate?, prepaymentFeeRate?
+  - Scenario: monthlyBudget, extraPayment, debts[]
+  - StrategyResult: totalInterest, monthsToPayoff, payoffDate, monthlyPlans[]
+  - MonthlyPlan item: monthIndex, debtName, paymentAmount, interestAmount, principalAmount, remainingBalance
+
+- APIs and integrations
+  - 내부 API(선택/확장):
+    - `POST /api/v1/simulations`: 전략 시뮬레이션 실행
+    - `GET /api/v1/simulations/{simulationId}`: 결과 조회
+    - `GET /api/v1/health`: 상태 확인
+  - 외부 금융 API 연동은 MVP 범위 제외
+
+- Infrastructure requirements
+  - 런타임: Node.js + Next.js
+  - 저장소: MVP는 클라이언트 상태/LocalStorage, 확장 시 PostgreSQL(또는 SQLite)
+  - 품질: TypeScript typecheck, Vitest 단위 테스트, Playwright E2E
+  - 성능 목표: 채무 20개 기준 시뮬레이션 1초 내
+
+# Development Roadmap
+Phase 1 - MVP Foundation
+- 도메인 타입/스키마 정의
+- 입력 검증 규칙 적용(음수 방지, 최소납입 합계 검증)
+- 상환 엔진 기본 계산 로직 구현(월이자, 최소납입, 잔액 감소)
+
+Phase 2 - Core Product (사용 가능한 첫 버전)
+- 채무 입력/수정/삭제 UI 완성
+- Avalanche/Snowball 전략 계산 및 비교 카드 제공
+- 월별 상환 계획표 렌더링
+- 월 예산 부족 등 에러 UX 제공
+
+Phase 3 - Reliability and Usability
+- 단위 테스트(핵심 계산/엣지 케이스)
+- 회귀 테스트 및 E2E 기본 시나리오
+- 전략 추천 문구(비용 최소/기간 단축 기준)
+
+Phase 4 - Expansion (Post-MVP)
+- LocalStorage 시나리오 저장/복원
+- API 계층 활성화 및 시나리오 이력화
+- 계정/동기화 및 데이터베이스 고도화
+
+# Logical Dependency Chain
+1. 도메인 타입/검증 규칙 확정
+2. 시뮬레이션 엔진 구현(전략 공통 계산 + 우선순위 분기)
+3. 입력 UI와 엔진 연결(최소 동작 가능 화면)
+4. 전략 비교 카드 구현(사용자에게 즉시 보이는 가치 제공)
+5. 월별 상환표 구현(실행 가능성 강화)
+6. 오류 처리/테스트 보강(신뢰성 확보)
+7. 저장/확장 기능 추가(장기 활용성 확보)
+
+이 순서는 "빠르게 동작하는 가시적 결과"를 우선 만들고, 그 위에 신뢰성과 확장성을 단계적으로 쌓기 위한 체인이다.
+
+# Risks and Mitigations
+1. 계산 정확도 리스크
+- Risk: 전략 로직/월이자 계산의 미세 오차가 결과 신뢰를 훼손
+- Mitigation: 결정적 순수 함수 설계, 수기 검산 케이스와 테스트 고정
+
+2. MVP 범위 과대화 리스크
+- Risk: 인증/외부 API/추천 시스템까지 확장하려다 핵심 기능 지연
+- Mitigation: Must/Should/Won't 엄격 분리, 전략 비교 핵심 지표 우선
+
+3. 월 예산 부족 등 실패 시나리오 리스크
+- Risk: 계산 불가 상황에서 UX 혼란 발생
+- Mitigation: 사전 검증 + 명확한 메시지 + 계산 차단 정책
+
+4. 리소스 제약 리스크
+- Risk: 제한된 개발 시간 내 품질 저하
+- Mitigation: 도메인 엔진 우선 구현, UI는 핵심 흐름 집중, 테스트는 고위험 케이스 우선
+
+# Appendix
+- Existing documents
+  - `README.md`
+  - `doc/problem-definition.md`
+  - `doc/requirements.md`
+  - `doc/architecture.md`
+  - `doc/api-spec.md`
+  - `doc/db-design.md`
+  - `doc/error-policy.md`
+
+- Key constraints and assumptions
+  - 외부 금융 API 미사용
+  - 로그인/회원가입은 MVP 제외
+  - 금액 단위는 KRW 정수 처리
+  - 동일 입력에 대한 동일 결과 보장(결정적 계산)
+</PRD>
