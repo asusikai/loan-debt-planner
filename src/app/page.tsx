@@ -7,6 +7,7 @@ import { BudgetForm } from "@/app/components/budget-form";
 import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { PaymentTable } from "@/app/components/payment-table";
+import { StrategyComparison } from "@/app/components/strategy-comparison";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
@@ -331,39 +332,14 @@ export default function HomePage() {
 
           {results ? (
             <>
-              <div className="result-cards">
-                <article className="result-card">
-                  <h3>Avalanche</h3>
-                  <p>총이자: {toCurrency(results.avalanche.totalInterest)}</p>
-                  <p>완납 개월: {results.avalanche.monthsToPayoff}개월</p>
-                  <p>완납 예정: {results.avalanche.payoffDate}</p>
-                </article>
-                <article className="result-card">
-                  <h3>Snowball</h3>
-                  <p>총이자: {toCurrency(results.snowball.totalInterest)}</p>
-                  <p>완납 개월: {results.snowball.monthsToPayoff}개월</p>
-                  <p>완납 예정: {results.snowball.payoffDate}</p>
-                </article>
+              <StrategyComparison
+                results={results}
+                selectedStrategy={selectedStrategy}
+                onSelectStrategy={setSelectedStrategy}
+              />
+              <div id="strategy-plan-table">
+                <PaymentTable monthlyPlans={activePlan?.slice(0, 120) ?? []} />
               </div>
-
-              <div className="strategy-tabs">
-                <button
-                  type="button"
-                  className={selectedStrategy === "avalanche" ? "active" : ""}
-                  onClick={() => setSelectedStrategy("avalanche")}
-                >
-                  Avalanche 월별표
-                </button>
-                <button
-                  type="button"
-                  className={selectedStrategy === "snowball" ? "active" : ""}
-                  onClick={() => setSelectedStrategy("snowball")}
-                >
-                  Snowball 월별표
-                </button>
-              </div>
-
-              <PaymentTable monthlyPlans={activePlan?.slice(0, 120) ?? []} />
             </>
           ) : null}
         </section>
