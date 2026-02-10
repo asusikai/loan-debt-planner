@@ -85,6 +85,18 @@ label {
   color: var(--muted);
 }
 
+.field-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #b42318;
+}
+
+.field-warning {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #8a5a00;
+}
+
 input {
   width: 100%;
   border: 1px solid var(--border);
