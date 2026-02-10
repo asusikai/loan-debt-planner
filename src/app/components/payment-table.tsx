@@ -13,6 +13,8 @@ type MonthlyGroup = {
   totalInterest: number;
   totalPrincipal: number;
   endingBalance: number;
+  cumulativeInterest: number;
+  paidOffDebts: string[];
 };
 
 type RangeMode = "paged" | "first12" | "last12" | "all";
@@ -37,7 +39,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
       grouped.set(item.monthIndex, group);
     }
 
-    return Array.from(grouped.entries())
+    const sorted = Array.from(grouped.entries())
       .sort((left, right) => left[0] - right[0])
       .map(([monthIndex, items]) => ({
         monthIndex,
@@ -46,7 +48,17 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
         totalInterest: items.reduce((sum, item) => sum + item.interestAmount, 0),
         totalPrincipal: items.reduce((sum, item) => sum + item.principalAmount, 0),
         endingBalance: items.reduce((sum, item) => sum + item.remainingBalance, 0),
+        cumulativeInterest: 0,
+        paidOffDebts: items
+          .filter((item) => item.remainingBalance === 0 && item.paymentAmount > 0)
+          .map((item) => item.debtName),
       }));
+
+    let runningInterest = 0;
+    return sorted.map((group) => {
+      runningInterest += group.totalInterest;
+      return { ...group, cumulativeInterest: runningInterest };
+    });
   }, [monthlyPlans]);
 
   const lastMonth = monthlyGroups.at(-1)?.monthIndex;
@@ -129,8 +141,10 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
             <th>월</th>
             <th>총 납입액</th>
             <th>총 이자</th>
+            <th>누적 이자</th>
             <th>총 원금상환</th>
             <th>월말 잔액</th>
+            <th>마일스톤</th>
             <th>상세</th>
           </tr>
         </thead>
@@ -144,9 +158,31 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
                 <tr key={`summary-${group.monthIndex}`} className={isFinalMonth ? "payoff-month" : ""}>
                   <td>{group.monthIndex}월</td>
                   <td>{toCurrency(group.totalPayment)}</td>
-                  <td>{toCurrency(group.totalInterest)}</td>
+                  <td
+                    className={
+                      group.totalInterest > 0
+                        ? group.totalInterest > visibleInterestTotal / Math.max(visibleGroups.length, 1)
+                          ? "interest-heavy"
+                          : "interest-light"
+                        : ""
+                    }
+                  >
+                    {toCurrency(group.totalInterest)}
+                  </td>
+                  <td>{toCurrency(group.cumulativeInterest)}</td>
                   <td>{toCurrency(group.totalPrincipal)}</td>
                   <td>{toCurrency(group.endingBalance)}</td>
+                  <td>
+                    {isFinalMonth ? <span className="milestone-badge">모든 채무 완납</span> : null}
+                    {!isFinalMonth && group.paidOffDebts.length > 0 ? (
+                      <span
+                        className="milestone-badge"
+                        aria-label={`${group.paidOffDebts.join(", ")} 채무 완납 월`}
+                      >
+                        {group.paidOffDebts.join(", ")} 완납
+                      </span>
+                    ) : null}
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -163,7 +199,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
                 </tr>
                 {isExpanded ? (
                   <tr id={`month-detail-${group.monthIndex}`} key={`detail-${group.monthIndex}`}>
-                    <td colSpan={6}>
+                    <td colSpan={8}>
                       <table className="nested-table">
                         <thead>
                           <tr>

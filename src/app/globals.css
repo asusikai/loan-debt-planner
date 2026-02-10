@@ -256,6 +256,25 @@ table {
   background: #edfdf3;
 }
 
+.interest-heavy {
+  background: #fff1f0;
+}
+
+.interest-light {
+  background: #f9fbff;
+}
+
+.milestone-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #b7e4c7;
+  background: #edfdf3;
+  color: #11643d;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .payment-pagination {
   margin-top: 10px;
   display: grid;
