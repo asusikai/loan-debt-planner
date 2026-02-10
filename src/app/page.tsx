@@ -85,6 +85,8 @@ export default function HomePage() {
     selectedStrategy === "avalanche"
       ? results?.avalanche.monthlyPlans
       : results?.snowball.monthlyPlans;
+  const monthlyBudgetAmount = Math.floor(toNumber(monthlyBudget));
+  const canCompareStrategies = debts.length > 0 && monthlyBudgetAmount >= totalMinimum;
 
   const editingDebt = useMemo(
     () => debts.find((debt) => debt.id === editingId) ?? null,
@@ -205,6 +207,12 @@ export default function HomePage() {
 
   function handleCalculate() {
     try {
+      if (!canCompareStrategies) {
+        setErrorMessage("예산이 최소납입 합계를 충족해야 결과 계산이 가능합니다.");
+        setResults(null);
+        return;
+      }
+
       if (debts.length === 0) {
         setErrorMessage("채무를 1개 이상 입력해 주세요.");
         setResults(null);
@@ -212,7 +220,7 @@ export default function HomePage() {
       }
 
       const scenario = {
-        monthlyBudget: Math.floor(toNumber(monthlyBudget)),
+        monthlyBudget: monthlyBudgetAmount,
         extraPayment: Math.floor(toNumber(extraPayment)),
         debts: debts.map(({ id: _, ...debt }) => debt),
       };
@@ -275,7 +283,18 @@ export default function HomePage() {
             onChangeMonthlyBudget={setMonthlyBudget}
             onChangeExtraPayment={setExtraPayment}
           />
-          <button type="button" onClick={handleCalculate} style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={handleCalculate}
+            style={{ marginTop: 10 }}
+            disabled={!canCompareStrategies}
+            aria-disabled={!canCompareStrategies}
+            title={
+              canCompareStrategies
+                ? ""
+                : "최소납입 합계를 충족하는 예산을 입력하면 활성화됩니다"
+            }
+          >
             결과 계산
           </button>
 
