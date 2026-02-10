@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from "react";
 
+import { DebtList, type EditableDebt } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { simulateStrategy } from "@/lib/repayment/engine";
-import type { Debt, StrategyResult } from "@/types/repayment";
-
-type EditableDebt = Debt & { id: string };
+import type { StrategyResult } from "@/types/repayment";
 
 const initialDebts: EditableDebt[] = [
   {
@@ -165,6 +164,11 @@ export default function HomePage() {
     }
   }
 
+  function handleAddDebt() {
+    resetForm();
+    setErrorMessage("");
+  }
+
   function handleCalculate() {
     try {
       if (debts.length === 0) {
@@ -211,59 +215,12 @@ export default function HomePage() {
             onCancel={resetForm}
           />
 
-          <div className="table-wrap" style={{ marginTop: 16 }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>채무명</th>
-                  <th>잔액</th>
-                  <th>연이율</th>
-                  <th>최소납입액</th>
-                  <th>만기</th>
-                  <th>중도상환수수료율</th>
-                  <th>액션</th>
-                </tr>
-              </thead>
-              <tbody>
-                {debts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7}>채무가 없습니다.</td>
-                  </tr>
-                ) : (
-                  debts.map((debt) => (
-                    <tr key={debt.id}>
-                      <td>{debt.name}</td>
-                      <td>{toCurrency(debt.balance)}</td>
-                      <td>{(debt.annualRate * 100).toFixed(2)}%</td>
-                      <td>{toCurrency(debt.minimumPayment)}</td>
-                      <td>{debt.maturityDate ?? "-"}</td>
-                      <td>
-                        {debt.prepaymentFeeRate !== undefined
-                          ? `${(debt.prepaymentFeeRate * 100).toFixed(2)}%`
-                          : "-"}
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="small"
-                          onClick={() => handleEditDebt(debt.id)}
-                        >
-                          수정
-                        </button>
-                        <button
-                          type="button"
-                          className="small danger"
-                          onClick={() => handleDeleteDebt(debt.id)}
-                        >
-                          삭제
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DebtList
+            debts={debts}
+            onEdit={handleEditDebt}
+            onDelete={handleDeleteDebt}
+            onAddNew={handleAddDebt}
+          />
         </section>
 
         <section className="card">
