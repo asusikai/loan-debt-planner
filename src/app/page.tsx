@@ -269,20 +269,12 @@ export default function HomePage() {
           <h2>전략 결과</h2>
           <BudgetForm
             monthlyBudget={monthlyBudget}
+            extraPayment={extraPayment}
             minimumRequired={totalMinimum}
             hasDebts={debts.length > 0}
             onChangeMonthlyBudget={setMonthlyBudget}
+            onChangeExtraPayment={setExtraPayment}
           />
-          <div className="budget-grid" style={{ marginTop: 8 }}>
-            <label>
-              추가 상환(원)
-              <input
-                type="number"
-                value={extraPayment}
-                onChange={(event) => setExtraPayment(event.target.value)}
-              />
-            </label>
-          </div>
           <button type="button" onClick={handleCalculate} style={{ marginTop: 10 }}>
             결과 계산
           </button>

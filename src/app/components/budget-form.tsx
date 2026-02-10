@@ -1,8 +1,10 @@
 type BudgetFormProps = {
   monthlyBudget: string;
+  extraPayment: string;
   minimumRequired: number;
   hasDebts: boolean;
   onChangeMonthlyBudget: (value: string) => void;
+  onChangeExtraPayment: (value: string) => void;
 };
 
 function toCurrency(value: number): string {
@@ -11,12 +13,17 @@ function toCurrency(value: number): string {
 
 export function BudgetForm({
   monthlyBudget,
+  extraPayment,
   minimumRequired,
   hasDebts,
   onChangeMonthlyBudget,
+  onChangeExtraPayment,
 }: BudgetFormProps) {
   const budgetNumber = Number(monthlyBudget || "0");
+  const extraPaymentNumber = Number(extraPayment || "0");
   const isInsufficient = hasDebts && Number.isFinite(budgetNumber) && budgetNumber < minimumRequired;
+  const isInvalidExtraPayment = Number.isFinite(extraPaymentNumber) && extraPaymentNumber < 0;
+  const totalAvailablePayment = Math.max(0, budgetNumber) + Math.max(0, extraPaymentNumber);
 
   return (
     <div className="budget-grid">
@@ -33,9 +40,25 @@ export function BudgetForm({
         />
       </label>
       <p className="muted budget-hint">최소납입 합계: {toCurrency(minimumRequired)}</p>
+      <label>
+        추가 상환(원, 선택)
+        <input
+          type="number"
+          min="0"
+          step="1000"
+          value={extraPayment}
+          onChange={(event) => onChangeExtraPayment(event.target.value)}
+          disabled={!hasDebts}
+          aria-invalid={isInvalidExtraPayment}
+        />
+      </label>
+      <p className="muted budget-hint">월 총 가용 상환: {toCurrency(totalAvailablePayment)}</p>
       {!hasDebts ? <p className="field-warning">채무를 먼저 추가해야 예산을 설정할 수 있습니다.</p> : null}
       {hasDebts && isInsufficient ? (
         <p className="field-error">예산이 최소납입 합계보다 작습니다.</p>
+      ) : null}
+      {hasDebts && isInvalidExtraPayment ? (
+        <p className="field-error">추가 상환 금액은 0 이상이어야 합니다.</p>
       ) : null}
     </div>
   );
