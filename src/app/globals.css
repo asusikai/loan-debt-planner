@@ -1,0 +1,38 @@
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --text: #142033;
+  --muted: #51607a;
+  --primary: #0d5bd7;
+  --border: #d9dfeb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(160deg, #f6f7fb 0%, #eef2fa 100%);
+  color: var(--text);
+  font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.muted {
+  color: var(--muted);
+}
