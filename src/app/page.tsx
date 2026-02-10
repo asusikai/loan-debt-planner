@@ -6,6 +6,7 @@ import { ConfirmationDialog } from "@/app/components/confirmation-dialog";
 import { BudgetForm } from "@/app/components/budget-form";
 import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
+import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
 import type { EditableDebt, StrategyResult } from "@/types/repayment";
@@ -63,6 +64,7 @@ export default function HomePage() {
     snowball: StrategyResult;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const { loadBudgetConfig, saveBudgetConfig, clearBudgetConfig } = useBudgetStorage();
   const { storageWarning, clearStorageWarning, loadDebts, saveDebts, deleteDebt } = useDebtStorage();
 
   useEffect(() => {
@@ -73,8 +75,34 @@ export default function HomePage() {
   }, [loadDebts]);
 
   useEffect(() => {
+    const storedBudgetConfig = loadBudgetConfig();
+    if (!storedBudgetConfig) {
+      return;
+    }
+
+    setMonthlyBudget(storedBudgetConfig.monthlyBudget);
+    setExtraPayment(storedBudgetConfig.extraPayment);
+  }, [loadBudgetConfig]);
+
+  useEffect(() => {
     saveDebts(debts);
   }, [debts, saveDebts]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      saveBudgetConfig({ monthlyBudget, extraPayment });
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [monthlyBudget, extraPayment, saveBudgetConfig]);
+
+  useEffect(() => {
+    if (debts.length === 0) {
+      clearBudgetConfig();
+    }
+  }, [debts.length, clearBudgetConfig]);
 
   const totalMinimum = useMemo(
     () => debts.reduce((sum, debt) => sum + debt.minimumPayment, 0),
