@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ConfirmationDialog } from "@/app/components/confirmation-dialog";
+import { BudgetForm } from "@/app/components/budget-form";
 import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
@@ -266,15 +267,13 @@ export default function HomePage() {
 
         <section className="card">
           <h2>전략 결과</h2>
-          <div className="budget-grid">
-            <label>
-              월 상환 예산(원)
-              <input
-                type="number"
-                value={monthlyBudget}
-                onChange={(event) => setMonthlyBudget(event.target.value)}
-              />
-            </label>
+          <BudgetForm
+            monthlyBudget={monthlyBudget}
+            minimumRequired={totalMinimum}
+            hasDebts={debts.length > 0}
+            onChangeMonthlyBudget={setMonthlyBudget}
+          />
+          <div className="budget-grid" style={{ marginTop: 8 }}>
             <label>
               추가 상환(원)
               <input
@@ -284,9 +283,6 @@ export default function HomePage() {
               />
             </label>
           </div>
-          <p className="muted" style={{ marginTop: 8 }}>
-            최소납입 합계: {toCurrency(totalMinimum)}
-          </p>
           <button type="button" onClick={handleCalculate} style={{ marginTop: 10 }}>
             결과 계산
           </button>

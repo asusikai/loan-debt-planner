@@ -77,6 +77,11 @@ h3 {
   gap: 12px;
 }
 
+.budget-hint {
+  margin: 0;
+  align-self: end;
+}
+
 label {
   display: flex;
   flex-direction: column;
