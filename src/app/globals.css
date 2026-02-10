@@ -256,6 +256,24 @@ table {
   background: #edfdf3;
 }
 
+.payment-pagination {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.range-actions,
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination-summary {
+  margin: 0;
+}
+
 th,
 td {
   padding: 10px;

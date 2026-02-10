@@ -15,12 +15,18 @@ type MonthlyGroup = {
   endingBalance: number;
 };
 
+type RangeMode = "paged" | "first12" | "last12" | "all";
+
+const PAGE_SIZE = 12;
+
 function toCurrency(value: number): string {
   return `${value.toLocaleString("ko-KR")}원`;
 }
 
 export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
   const [expandedMonths, setExpandedMonths] = useState<Record<number, boolean>>({});
+  const [rangeMode, setRangeMode] = useState<RangeMode>("paged");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const monthlyGroups = useMemo<MonthlyGroup[]>(() => {
     const grouped = new Map<number, MonthlyPlanItem[]>();
@@ -44,13 +50,79 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
   }, [monthlyPlans]);
 
   const lastMonth = monthlyGroups.at(-1)?.monthIndex;
+  const totalPages = Math.max(1, Math.ceil(monthlyGroups.length / PAGE_SIZE));
+
+  const visibleGroups = useMemo(() => {
+    if (rangeMode === "first12") {
+      return monthlyGroups.slice(0, PAGE_SIZE);
+    }
+
+    if (rangeMode === "last12") {
+      return monthlyGroups.slice(Math.max(0, monthlyGroups.length - PAGE_SIZE));
+    }
+
+    if (rangeMode === "all") {
+      return monthlyGroups;
+    }
+
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return monthlyGroups.slice(start, start + PAGE_SIZE);
+  }, [rangeMode, monthlyGroups, currentPage, totalPages]);
+
+  const visibleInterestTotal = visibleGroups.reduce((sum, group) => sum + group.totalInterest, 0);
+  const visiblePaymentTotal = visibleGroups.reduce((sum, group) => sum + group.totalPayment, 0);
 
   if (monthlyGroups.length === 0) {
     return <p className="muted">표시할 월별 상환 데이터가 없습니다.</p>;
   }
 
   return (
-    <div className="table-wrap">
+    <>
+      <nav className="payment-pagination" aria-label="월별표 탐색">
+        <div className="range-actions">
+          <button type="button" className="small" onClick={() => setRangeMode("first12")}>
+            첫 12개월
+          </button>
+          <button type="button" className="small" onClick={() => setRangeMode("last12")}>
+            마지막 12개월
+          </button>
+          <button type="button" className="small" onClick={() => setRangeMode("all")}>
+            전체 보기
+          </button>
+          <button type="button" className="small" onClick={() => setRangeMode("paged")}>
+            페이지 보기
+          </button>
+        </div>
+        {rangeMode === "paged" ? (
+          <div className="page-actions">
+            <button
+              type="button"
+              className="small"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              이전
+            </button>
+            <span>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              className="small"
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage >= totalPages}
+            >
+              다음
+            </button>
+          </div>
+        ) : null}
+        <p className="muted pagination-summary">
+          선택 구간 합계 - 납입액 {toCurrency(visiblePaymentTotal)}, 이자 {toCurrency(visibleInterestTotal)}
+        </p>
+      </nav>
+
+      <div className="table-wrap">
       <table>
         <thead>
           <tr>
@@ -63,7 +135,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
           </tr>
         </thead>
         <tbody>
-          {monthlyGroups.map((group) => {
+          {visibleGroups.map((group) => {
             const isExpanded = Boolean(expandedMonths[group.monthIndex]);
             const isFinalMonth = group.monthIndex === lastMonth;
 
@@ -122,6 +194,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
