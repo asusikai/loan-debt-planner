@@ -625,7 +625,7 @@
             "description": "채무 데이터와 사용자 설정을 브라우저 LocalStorage와 동기화하는 재사용 가능한 React Hook을 작성합니다.",
             "dependencies": [],
             "details": "src/hooks/useLocalStorage.ts 파일을 생성합니다. JSON stringify/parse 시의 예외 처리를 포함하고, SSR 환경을 고려하여 window 객체 존재 여부를 체크하는 로직을 구현합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Vitest를 사용하여 문자열, 숫자, 객체 등 다양한 데이터 타입이 LocalStorage에 올바르게 저장되고 다시 로드되는지 단위 테스트를 수행합니다."
           },
           {
