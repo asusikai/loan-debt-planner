@@ -28,6 +28,8 @@ export type Debt = {
   minimumPayment: number;
   /** Optional prepayment fee rate as decimal. */
   prepaymentFeeRate?: number;
+  /** Optional prepayment fee exemption months. */
+  feeExemptionMonths?: number;
   /** Optional remaining months to maturity. */
   maturityMonths?: number;
 };
