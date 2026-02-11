@@ -4,7 +4,7 @@ DebtPilot은 다중 채무를 가진 사회초년생이 제한된 월 상환 가
 
 # Core Features
 1. 채무 등록/수정/삭제
-- What: 채무명, 잔액, 연이율, 최소납입액, 만기(선택), 중도상환수수료율(선택)을 입력/관리
+- What: 채무명, 잔액, 연이율, 최소납입액, 만기 잔여 개월 수(선택), 중도상환수수료율(선택)을 입력/관리
 - Why: 다중 채무 비교의 정확한 입력 기반 확보
 - How: 입력 폼 + 유효성 검증 + 목록 테이블에서 편집/삭제
 
@@ -57,7 +57,7 @@ DebtPilot은 다중 채무를 가진 사회초년생이 제한된 월 상환 가
   - Types: Debt/Scenario/Result 타입 모델 (`src/types/repayment.ts`)
 
 - Data models
-  - Debt: name, balance, annualRate, minimumPayment, maturityDate?, prepaymentFeeRate?
+- Debt: name, balance, annualRate, minimumPayment, maturityMonths?, prepaymentFeeRate?
   - Scenario: monthlyBudget, extraPayment, debts[]
   - StrategyResult: totalInterest, monthsToPayoff, payoffDate, monthlyPlans[]
   - MonthlyPlan item: monthIndex, debtName, paymentAmount, interestAmount, principalAmount, remainingBalance
