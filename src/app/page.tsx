@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ConfirmationDialog } from "@/app/components/confirmation-dialog";
 import { BudgetForm } from "@/app/components/budget-form";
@@ -136,11 +136,11 @@ function HomePageContent() {
     };
   }, [editingDebt]);
 
-  function resetForm() {
+  const resetForm = useCallback(() => {
     setEditingId(null);
-  }
+  }, []);
 
-  function handleSubmitDebt(formValues: DebtFormValues) {
+  const handleSubmitDebt = useCallback((formValues: DebtFormValues) => {
     const name = formValues.name.trim();
     const balance = Math.floor(toNumber(formValues.balance));
     const annualRatePercent = toNumber(formValues.annualRatePercent);
@@ -189,9 +189,9 @@ function HomePageContent() {
 
     setErrorMessage("");
     resetForm();
-  }
+  }, [editingId, pushToast, resetForm, upsertDebt]);
 
-  function handleEditDebt(id: string) {
+  const handleEditDebt = useCallback((id: string) => {
     const target = debts.find((debt) => debt.id === id);
     if (!target) {
       return;
@@ -199,19 +199,19 @@ function HomePageContent() {
 
     setEditingId(target.id);
     setErrorMessage("");
-  }
+  }, [debts]);
 
-  function requestDeleteDebt(debt: EditableDebt, trigger: HTMLButtonElement) {
+  const requestDeleteDebt = useCallback((debt: EditableDebt, trigger: HTMLButtonElement) => {
     setDebtPendingDeletion(debt);
     setDeleteTriggerButton(trigger);
-  }
+  }, []);
 
-  function cancelDeleteDebt() {
+  const cancelDeleteDebt = useCallback(() => {
     setDebtPendingDeletion(null);
     setDeleteTriggerButton(null);
-  }
+  }, []);
 
-  function confirmDeleteDebt() {
+  const confirmDeleteDebt = useCallback(() => {
     if (!debtPendingDeletion) {
       return;
     }
@@ -223,14 +223,14 @@ function HomePageContent() {
 
     setDebtPendingDeletion(null);
     setDeleteTriggerButton(null);
-  }
+  }, [debtPendingDeletion, editingId, removeDebt, resetForm]);
 
-  function handleAddDebt() {
+  const handleAddDebt = useCallback(() => {
     resetForm();
     setErrorMessage("");
-  }
+  }, [resetForm]);
 
-  function handleResetState() {
+  const handleResetState = useCallback(() => {
     setDebts(initialDebts);
     setMonthlyBudget("");
     setExtraPayment("");
@@ -241,9 +241,9 @@ function HomePageContent() {
     setErrorModal({ open: false, title: "", message: "" });
     clearBudgetConfig();
     pushToast("입력 상태가 초기화되었습니다.", "success");
-  }
+  }, [clearBudgetConfig, pushToast, setDebts]);
 
-  function handleCalculate() {
+  const handleCalculate = useCallback(() => {
     try {
       if (!canCompareStrategies) {
         setErrorMessage("예산이 최소납입 합계를 충족해야 결과 계산이 가능합니다.");
@@ -298,7 +298,7 @@ function HomePageContent() {
       }
       setResults(null);
     }
-  }
+  }, [canCompareStrategies, debts, extraPayment, monthlyBudgetAmount, pushToast, totalMinimum]);
 
   return (
     <main>
