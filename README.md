@@ -79,3 +79,12 @@ pnpm build
 - 수수료 반영: 추가 상환 시 수수료(`prepaymentFeeRate`, `feeExemptionMonths`)를 별도 집계하여 `totalFeesPaid`, `netSavings` 산출
 - 전략 정렬: `SortProvider`를 통해 Avalanche/Snowball 정렬과 0% 금리/만기 보조 규칙 적용
 - 정밀도/종료: 화폐 연산 유틸 기반 정밀도 관리와 최종 회차 잔액 0원 보정, 조기 종료 최적화 적용
+
+## 배포
+
+- 권장 배포 플랫폼: Vercel
+- 기본 배포 절차
+  1. 저장소 연결 후 프레임워크를 Next.js로 선택
+  2. Install Command: `pnpm install`
+  3. Build Command: `pnpm build`
+  4. Output 설정은 Next.js 기본값 사용
