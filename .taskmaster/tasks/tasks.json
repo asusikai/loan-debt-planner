@@ -647,7 +647,7 @@
               2
             ],
             "details": "playwright.config.ts를 설정하고 tests/e2e/full-flow.spec.ts 파일을 생성합니다. 메인 시나리오(채무 입력 -> 예산 설정 -> 전략 선택 -> 계획표 확인)의 각 단계별 셀렉터와 기대 동작을 정의합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "npx playwright test 명령을 실행하여 브라우저 자동화가 정상적으로 시작되고 각 페이지 요소에 접근 가능한지 확인합니다."
           },
           {
