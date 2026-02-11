@@ -1,3 +1,11 @@
+export type DebtCore = {
+  id: string;
+  name: string;
+  balance: number;
+  interestRate: number;
+  minPayment: number;
+};
+
 export type Debt = {
   name: string;
   balance: number;
