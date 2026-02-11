@@ -79,7 +79,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -131,7 +131,7 @@
               4
             ],
             "details": "이율 0%와 100%, 잔액 0원, 매우 큰 금액 입력 등 경계값 테스트와 비즈니스 로직 위반 시의 에러 메시지 정확도를 확인하는 테스트 케이스를 추가합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "모든 에러 시나리오에 대해 ZodError가 발생하며, 정의한 커스텀 메시지가 정확하게 반환되는지 검증합니다."
           }
         ]

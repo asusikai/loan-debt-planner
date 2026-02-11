@@ -34,4 +34,32 @@ describe("repayment validation schema", () => {
     expect(parsed.monthlyBudget).toBe(700_000);
     expect(parsed.debts).toHaveLength(1);
   });
+
+  it("rejects invalid debt boundary values", () => {
+    expect(() =>
+      debtSchema.parse({
+        name: "loan-a",
+        balance: -1,
+        annualRate: 1.2,
+        minimumPayment: -10,
+      }),
+    ).toThrow();
+  });
+
+  it("rejects scenario when budget is below total minimum payment", () => {
+    expect(() =>
+      scenarioSchema.parse({
+        monthlyBudget: 100_000,
+        extraPayment: 0,
+        debts: [
+          {
+            name: "loan-a",
+            balance: 5_000_000,
+            annualRate: 0.12,
+            minimumPayment: 200_000,
+          },
+        ],
+      }),
+    ).toThrow();
+  });
 });
