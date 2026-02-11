@@ -23,6 +23,12 @@ export type ScenarioInput = {
   debts: Debt[];
 };
 
+export type Scenario = {
+  debts: Debt[];
+  monthlyBudget: number;
+  strategy: "SNOWBALL" | "AVALANCHE";
+};
+
 export type StrategyType = "avalanche" | "snowball";
 
 export type MonthlyPlanItem = {

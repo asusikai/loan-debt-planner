@@ -50,7 +50,7 @@
               1
             ],
             "details": "debts(Debt[]), monthlyBudget(number), strategy('SNOWBALL' | 'AVALANCHE') 필드를 포함하여 계산 엔진의 입력값으로 사용되도록 합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "리터럴 타입을 사용하여 전략명이 올바르게 제한되는지 확인합니다."
           },
           {
