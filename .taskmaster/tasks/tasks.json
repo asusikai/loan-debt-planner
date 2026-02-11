@@ -481,7 +481,7 @@
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -522,7 +522,7 @@
               2
             ],
             "details": "채무 잔액이 0이 되는 셀에 배지(Badge)나 배경색을 적용하여 강조합니다. 테이블 최하단에는 총 납입 이자 및 총 상환 기간을 요약하는 Footer 행을 추가합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "시뮬레이션 결과에 따라 마지막 행의 모든 채무 잔액이 0으로 표시되는지, 총계 데이터가 정확한지 육안 및 로직 확인을 수행합니다."
           },
           {

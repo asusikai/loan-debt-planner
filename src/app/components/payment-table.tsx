@@ -84,6 +84,8 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
 
   const visibleInterestTotal = visibleGroups.reduce((sum, group) => sum + group.totalInterest, 0);
   const visiblePaymentTotal = visibleGroups.reduce((sum, group) => sum + group.totalPayment, 0);
+  const totalPaymentOverall = monthlyGroups.reduce((sum, group) => sum + group.totalPayment, 0);
+  const totalInterestOverall = monthlyGroups.reduce((sum, group) => sum + group.totalInterest, 0);
 
   if (monthlyGroups.length === 0) {
     return <p className="muted">표시할 월별 상환 데이터가 없습니다.</p>;
@@ -231,6 +233,18 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
             );
           })}
         </tbody>
+        <tfoot>
+          <tr>
+            <th>총계</th>
+            <th>-</th>
+            <th>{toCurrency(totalPaymentOverall)}</th>
+            <th>{toCurrency(totalInterestOverall)}</th>
+            <th>{toCurrency(monthlyGroups.at(-1)?.cumulativeInterest ?? 0)}</th>
+            <th>{toCurrency(totalPaymentOverall - totalInterestOverall)}</th>
+            <th>{toCurrency(monthlyGroups.at(-1)?.endingBalance ?? 0)}</th>
+            <th colSpan={2}>총 상환 기간: {lastMonth ?? 0}개월</th>
+          </tr>
+        </tfoot>
       </table>
       </div>
     </>
