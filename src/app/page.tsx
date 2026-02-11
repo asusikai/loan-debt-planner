@@ -339,7 +339,9 @@ export default function HomePage() {
                 <PaymentTable monthlyPlans={activePlan?.slice(0, 120) ?? []} />
               </div>
             </>
-          ) : null}
+          ) : (
+            <p className="muted result-empty">결과 계산을 실행하면 전략 비교 카드와 월별표가 표시됩니다.</p>
+          )}
         </section>
       </div>
       <ConfirmationDialog
