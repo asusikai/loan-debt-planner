@@ -73,3 +73,9 @@ pnpm build
 - 개선 로그: `doc/improvement-log.md`
 - AI 협업 로그: `doc/ai-collaboration-log.md`
 - 추적성 매트릭스: `doc/traceability-matrix.md`
+
+## 핵심 엔진 동작 요약
+
+- 수수료 반영: 추가 상환 시 수수료(`prepaymentFeeRate`, `feeExemptionMonths`)를 별도 집계하여 `totalFeesPaid`, `netSavings` 산출
+- 전략 정렬: `SortProvider`를 통해 Avalanche/Snowball 정렬과 0% 금리/만기 보조 규칙 적용
+- 정밀도/종료: 화폐 연산 유틸 기반 정밀도 관리와 최종 회차 잔액 0원 보정, 조기 종료 최적화 적용
