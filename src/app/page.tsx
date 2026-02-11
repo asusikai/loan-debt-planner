@@ -8,6 +8,7 @@ import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { PaymentTable } from "@/app/components/payment-table";
 import { StrategyComparison } from "@/app/components/strategy-comparison";
+import { ErrorModal } from "@/components/common/error-modal";
 import { ErrorBoundary } from "@/components/common/error-boundary";
 import { ToastProvider, useToast } from "@/components/common/toast";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
@@ -70,6 +71,11 @@ function HomePageContent() {
     snowball: StrategyResult;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorModal, setErrorModal] = useState<{ open: boolean; title: string; message: string }>({
+    open: false,
+    title: "",
+    message: "",
+  });
   const { loadBudgetConfig, saveBudgetConfig, clearBudgetConfig } = useBudgetStorage();
   const { storageWarning, clearStorageWarning, loadDebts, saveDebts } = useDebtStorage();
 
@@ -244,6 +250,11 @@ function HomePageContent() {
       if (!canCompareStrategies) {
         setErrorMessage("예산이 최소납입 합계를 충족해야 결과 계산이 가능합니다.");
         pushToast("월 예산이 최소납입 합계를 충족해야 합니다.", "warning");
+        setErrorModal({
+          open: true,
+          title: "예산 부족",
+          message: `월 예산을 최소 ${toCurrency(totalMinimum)} 이상으로 설정해 주세요.`,
+        });
         setResults(null);
         return;
       }
@@ -273,9 +284,19 @@ function HomePageContent() {
           `월 상환 예산이 최소납입 합계(${toCurrency(totalMinimum)})보다 작습니다.`,
         );
         pushToast("월 상환 예산이 부족합니다.", "error");
+        setErrorModal({
+          open: true,
+          title: "계산 불가",
+          message: `월 상환 예산을 최소 ${toCurrency(totalMinimum)} 이상으로 입력해 주세요.`,
+        });
       } else {
         setErrorMessage("시뮬레이션 중 오류가 발생했습니다.");
         pushToast("시뮬레이션 중 오류가 발생했습니다.", "error");
+        setErrorModal({
+          open: true,
+          title: "오류 발생",
+          message: "입력값을 확인한 뒤 다시 계산해 주세요.",
+        });
       }
       setResults(null);
     }
@@ -368,6 +389,12 @@ function HomePageContent() {
         onConfirm={confirmDeleteDebt}
         onCancel={cancelDeleteDebt}
         restoreFocusTo={deleteTriggerButton}
+      />
+      <ErrorModal
+        open={errorModal.open}
+        title={errorModal.title}
+        message={errorModal.message}
+        onClose={() => setErrorModal((prev) => ({ ...prev, open: false }))}
       />
     </main>
   );

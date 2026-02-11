@@ -590,7 +590,7 @@
               3
             ],
             "details": "단순 경고를 넘어 '이율을 조정하거나 월 예산을 00원 이상으로 늘려야 합니다'와 같은 구체적인 가이드를 포함하는 모달 컴포넌트를 src/components/common/ErrorModal.tsx에 작성합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "예산 부족 상황을 재현하여 모달이 뜨는지 확인하고, 모달 내의 가이드 텍스트가 현재 입력값에 기반해 동적으로 변하는지 검증합니다."
           },
           {
