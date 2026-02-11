@@ -43,4 +43,38 @@ describe("simulateStrategy", () => {
       ),
     ).toThrow("BUDGET_BELOW_MINIMUM");
   });
+
+  it("avalanche and snowball produce different payoff order for mixed debts", () => {
+    const input = {
+      monthlyBudget: 550000,
+      extraPayment: 0,
+      debts: [
+        {
+          name: "high-rate",
+          balance: 3000000,
+          annualRate: 0.19,
+          minimumPayment: 150000,
+        },
+        {
+          name: "small-balance",
+          balance: 1200000,
+          annualRate: 0.08,
+          minimumPayment: 120000,
+        },
+      ],
+    };
+
+    const avalanche = simulateStrategy(input, "avalanche");
+    const snowball = simulateStrategy(input, "snowball");
+
+    const avalancheFirstExtra = avalanche.monthlyPlans.find(
+      (item) => item.monthIndex === 1 && item.interestAmount === 0 && item.paymentAmount > 0,
+    );
+    const snowballFirstExtra = snowball.monthlyPlans.find(
+      (item) => item.monthIndex === 1 && item.interestAmount === 0 && item.paymentAmount > 0,
+    );
+
+    expect(avalancheFirstExtra?.debtName).toBe("high-rate");
+    expect(snowballFirstExtra?.debtName).toBe("small-balance");
+  });
 });

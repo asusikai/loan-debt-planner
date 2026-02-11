@@ -213,7 +213,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -264,7 +264,7 @@
               4
             ],
             "details": "복수의 채무 시나리오를 설정하고, Avalanche가 이론적으로 총 이자 비용이 더 적게 발생하는지, Snowball은 초기 상환 완료 채무가 더 빨리 발생하는지 확인하는 시나리오 테스트를 작성합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Vitest를 사용하여 두 전략의 리턴값을 비교하고 기대되는 비즈니스 로직(비용 절감 vs 상환 속도)이 일치하는지 assert 문으로 확인합니다."
           }
         ]
