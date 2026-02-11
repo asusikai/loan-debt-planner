@@ -120,7 +120,7 @@
               3
             ],
             "details": "src/lib/validation/debtSchema.test.ts 파일을 생성하고 정상적인 입력 데이터 세트에 대해 스키마 검증이 통과하는지 확인하는 기초 테스트 코드를 작성합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "vitest 명령어를 통해 작성된 테스트 코드가 정상적으로 실행되고 통과하는지 확인합니다."
           },
           {
