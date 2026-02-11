@@ -28,7 +28,7 @@
               1
             ],
             "details": "MonthlyPlan 인터페이스는 month(number), remainingBalance(number), totalPaidInterest(number), payments(MonthlyDebtStatus[])를 포함하도록 설계합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "정의된 인터페이스가 월별 상환 내역을 표현하기에 구조적으로 충분한지 코드 리뷰를 통해 확인합니다."
           },
           {

@@ -34,6 +34,21 @@ export type MonthlyPlanItem = {
   remainingBalance: number;
 };
 
+export type MonthlyDebtStatus = {
+  debtName: string;
+  paymentAmount: number;
+  interestAmount: number;
+  principalAmount: number;
+  remainingBalance: number;
+};
+
+export type MonthlyPlan = {
+  month: number;
+  remainingBalance: number;
+  totalPaidInterest: number;
+  payments: MonthlyDebtStatus[];
+};
+
 export type StrategyResult = {
   strategy: StrategyType;
   totalInterest: number;
