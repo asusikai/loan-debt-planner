@@ -35,7 +35,7 @@ const emptyForm: DebtFormValues = {
   balance: "",
   annualRatePercent: "",
   minimumPayment: "",
-  maturityDate: "",
+  maturityMonths: "",
   prepaymentFeeRatePercent: "",
 };
 
@@ -133,7 +133,7 @@ export default function HomePage() {
       balance: String(editingDebt.balance),
       annualRatePercent: (editingDebt.annualRate * 100).toFixed(2),
       minimumPayment: String(editingDebt.minimumPayment),
-      maturityDate: editingDebt.maturityDate ?? "",
+      maturityMonths: editingDebt.maturityMonths !== undefined ? String(editingDebt.maturityMonths) : "",
       prepaymentFeeRatePercent:
         editingDebt.prepaymentFeeRate !== undefined
           ? (editingDebt.prepaymentFeeRate * 100).toFixed(2)
@@ -150,7 +150,9 @@ export default function HomePage() {
     const balance = Math.floor(toNumber(formValues.balance));
     const annualRatePercent = toNumber(formValues.annualRatePercent);
     const minimumPayment = Math.floor(toNumber(formValues.minimumPayment));
-    const maturityDate = formValues.maturityDate.trim();
+    const maturityMonthsInput = formValues.maturityMonths.trim();
+    const maturityMonths =
+      maturityMonthsInput === "" ? undefined : Math.floor(toNumber(maturityMonthsInput));
     const prepaymentFeeRatePercentInput = formValues.prepaymentFeeRatePercent.trim();
     const prepaymentFeeRatePercent =
       prepaymentFeeRatePercentInput === ""
@@ -178,7 +180,7 @@ export default function HomePage() {
       balance,
       annualRate: annualRatePercent / 100,
       minimumPayment,
-      maturityDate: maturityDate || undefined,
+      maturityMonths,
       prepaymentFeeRate:
         prepaymentFeeRatePercent !== undefined
           ? prepaymentFeeRatePercent / 100

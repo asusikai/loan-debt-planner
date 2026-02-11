@@ -6,7 +6,7 @@ export const debtSchema = z.object({
   annualRate: z.number().min(0),
   minimumPayment: z.number().int().nonnegative(),
   prepaymentFeeRate: z.number().min(0).optional().default(0),
-  maturityDate: z.string().optional(),
+  maturityMonths: z.number().int().positive().optional(),
 });
 
 export const scenarioSchema = z

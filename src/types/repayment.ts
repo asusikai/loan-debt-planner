@@ -4,7 +4,7 @@ export type Debt = {
   annualRate: number;
   minimumPayment: number;
   prepaymentFeeRate?: number;
-  maturityDate?: string;
+  maturityMonths?: number;
 };
 
 export type EditableDebt = Debt & { id: string };

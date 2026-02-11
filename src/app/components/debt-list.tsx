@@ -19,21 +19,12 @@ function formatRate(value?: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
-function formatDate(value?: string): string {
-  if (!value) {
+function formatMaturityMonths(value?: number): string {
+  if (value === undefined) {
     return "-";
   }
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
+  return `${value}개월`;
 }
 
 export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
@@ -60,7 +51,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               <th>잔액</th>
               <th>연이율</th>
               <th>최소납입액</th>
-              <th>만기</th>
+              <th>만기 잔여 개월</th>
               <th>중도상환수수료율</th>
               <th>액션</th>
             </tr>
@@ -72,7 +63,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
                 <td>{formatCurrency(debt.balance)}</td>
                 <td>{formatRate(debt.annualRate)}</td>
                 <td>{formatCurrency(debt.minimumPayment)}</td>
-                <td>{formatDate(debt.maturityDate)}</td>
+                <td>{formatMaturityMonths(debt.maturityMonths)}</td>
                 <td>{formatRate(debt.prepaymentFeeRate)}</td>
                 <td>
                   <button type="button" className="small" onClick={() => onEdit(debt.id)}>
@@ -101,7 +92,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
             </p>
             <p>연이율: {formatRate(debt.annualRate)}</p>
             <p>최소납입액: {formatCurrency(debt.minimumPayment)}</p>
-            <p>만기: {formatDate(debt.maturityDate)}</p>
+            <p>만기 잔여 개월: {formatMaturityMonths(debt.maturityMonths)}</p>
             <p>중도상환수수료율: {formatRate(debt.prepaymentFeeRate)}</p>
             <div className="debt-card-actions">
               <button type="button" onClick={() => onEdit(debt.id)}>

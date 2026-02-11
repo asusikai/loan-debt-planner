@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
 import {
-  isPastMaturityDate,
   validateDebtForm,
   type DebtFormErrors,
   type DebtFormField,
@@ -13,7 +12,7 @@ export type DebtFormValues = {
   balance: string;
   annualRatePercent: string;
   minimumPayment: string;
-  maturityDate: string;
+  maturityMonths: string;
   prepaymentFeeRatePercent: string;
 };
 
@@ -30,7 +29,7 @@ function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
     left.balance === right.balance &&
     left.annualRatePercent === right.annualRatePercent &&
     left.minimumPayment === right.minimumPayment &&
-    left.maturityDate === right.maturityDate &&
+    left.maturityMonths === right.maturityMonths &&
     left.prepaymentFeeRatePercent === right.prepaymentFeeRatePercent
   );
 }
@@ -73,11 +72,6 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
   }, [values, touched]);
 
   const isDirty = useMemo(() => !areEqual(values, initialValues), [values, initialValues]);
-  const showPastDateWarning = useMemo(
-    () => isPastMaturityDate(values.maturityDate),
-    [values.maturityDate],
-  );
-
   function updateField<K extends keyof DebtFormValues>(field: K, value: DebtFormValues[K]) {
     setValues((prev) => ({ ...prev, [field]: value }));
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -187,31 +181,23 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
           </p>
         ) : null}
       </label>
-      <label htmlFor="debt-maturity-date">
-        만기(선택)
+      <label htmlFor="debt-maturity-months">
+        만기 잔여 개월 수(선택)
         <input
-          id="debt-maturity-date"
-          type="date"
-          value={values.maturityDate}
-          onChange={(event) => updateField("maturityDate", event.target.value)}
-          onBlur={() => markTouched("maturityDate")}
-          aria-invalid={Boolean(getFieldError("maturityDate"))}
-          aria-describedby={
-            getFieldError("maturityDate")
-              ? "debt-maturity-date-error"
-              : showPastDateWarning
-                ? "debt-maturity-date-warning"
-                : undefined
-          }
+          id="debt-maturity-months"
+          type="number"
+          min="1"
+          step="1"
+          value={values.maturityMonths}
+          onChange={(event) => updateField("maturityMonths", event.target.value)}
+          onBlur={() => markTouched("maturityMonths")}
+          aria-invalid={Boolean(getFieldError("maturityMonths"))}
+          aria-describedby={getFieldError("maturityMonths") ? "debt-maturity-months-error" : undefined}
+          placeholder="예: 24"
         />
-        {getFieldError("maturityDate") ? (
-          <p id="debt-maturity-date-error" className="field-error" role="alert">
-            {getFieldError("maturityDate")}
-          </p>
-        ) : null}
-        {!getFieldError("maturityDate") && showPastDateWarning ? (
-          <p id="debt-maturity-date-warning" className="field-warning">
-            과거 만기일입니다. 입력은 가능하지만 다시 확인해 주세요.
+        {getFieldError("maturityMonths") ? (
+          <p id="debt-maturity-months-error" className="field-error" role="alert">
+            {getFieldError("maturityMonths")}
           </p>
         ) : null}
       </label>

@@ -25,11 +25,18 @@ const optionalPercentString = z
     { message: "중도상환수수료율은 0~100 사이여야 합니다." },
   );
 
-const optionalDateString = z
+const optionalMonthsString = z
   .string()
   .trim()
-  .refine((value) => value === "" || !Number.isNaN(Date.parse(value)), {
-    message: "유효한 날짜를 입력해 주세요.",
+  .refine((value) => {
+    if (value === "") {
+      return true;
+    }
+
+    const numberValue = Number(value);
+    return Number.isInteger(numberValue) && numberValue > 0;
+  }, {
+    message: "만기 잔여 개월 수는 1 이상의 정수여야 합니다.",
   });
 
 export const debtFormSchema = z
@@ -47,7 +54,7 @@ export const debtFormSchema = z
       const numberValue = Number(value);
       return Number.isInteger(numberValue) && numberValue > 0;
     }, "최소납입액은 1 이상 정수여야 합니다."),
-    maturityDate: optionalDateString,
+    maturityMonths: optionalMonthsString,
     prepaymentFeeRatePercent: optionalPercentString,
   })
   .superRefine((value, ctx) => {
@@ -85,21 +92,4 @@ export function validateDebtForm(values: DebtFormValues): {
   }
 
   return { isValid: false, errors };
-}
-
-export function isPastMaturityDate(value: string): boolean {
-  if (!value) {
-    return false;
-  }
-
-  const selected = new Date(value);
-  if (Number.isNaN(selected.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  selected.setHours(0, 0, 0, 0);
-
-  return selected < today;
 }
