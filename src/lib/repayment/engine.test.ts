@@ -265,4 +265,32 @@ describe("simulateStrategy", () => {
     );
   });
 
+  it("ends on exact payoff month without trailing plan rows", () => {
+    const result = simulateStrategy(
+      {
+        monthlyBudget: 300_000,
+        extraPayment: 0,
+        debts: [
+          {
+            name: "tiny",
+            balance: 90_000,
+            annualRate: 0,
+            minimumPayment: 300_000,
+          },
+        ],
+      },
+      "snowball",
+    );
+
+    const maxMonth = result.monthlyPlans.reduce(
+      (latest, plan) => Math.max(latest, plan.monthIndex),
+      0,
+    );
+    const finalRemaining = result.monthlyPlans[result.monthlyPlans.length - 1]?.remainingBalance ?? -1;
+
+    expect(result.monthsToPayoff).toBe(1);
+    expect(maxMonth).toBe(result.monthsToPayoff);
+    expect(finalRemaining).toBe(0);
+  });
+
 });

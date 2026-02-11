@@ -97,6 +97,9 @@ function simulateStrategyCore(
       const principal = Math.max(0, minimum - interest);
 
       debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, principal));
+      if (debt.remainingBalance <= 1) {
+        debt.remainingBalance = 0;
+      }
       totalInterest = toKrw(preciseAdd(totalInterest, interest));
       budgetLeft = toKrw(preciseSubtract(budgetLeft, minimum));
 
@@ -108,6 +111,10 @@ function simulateStrategyCore(
         principalAmount: principal,
         remainingBalance: debt.remainingBalance,
       });
+    }
+
+    if (!hasPositiveBalance(workingDebts)) {
+      break;
     }
 
     const rankedDebts = rankDebtsByStrategy(
@@ -129,6 +136,9 @@ function simulateStrategyCore(
       });
 
       debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, extra));
+      if (debt.remainingBalance <= 1) {
+        debt.remainingBalance = 0;
+      }
       budgetLeft = toKrw(preciseSubtract(budgetLeft, extra));
       totalFeesPaid = toKrw(preciseAdd(totalFeesPaid, fee));
 
