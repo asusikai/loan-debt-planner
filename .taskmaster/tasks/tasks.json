@@ -568,7 +568,7 @@
               1
             ],
             "details": "React-hot-toast 또는 Sonner와 같은 라이브러리를 설정하거나 커스텀 Context API 기반의 토스트 시스템을 구축합니다. 성공, 경고, 에러 타입별로 스타일을 정의합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "버튼 클릭 시 다양한 타입의 알림 메시지가 화면에 나타나고 일정 시간 후 사라지는지 테스트합니다."
           },
           {

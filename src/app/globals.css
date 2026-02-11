@@ -303,6 +303,43 @@ table {
   padding: 16px;
 }
 
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 8px;
+  z-index: 1200;
+}
+
+.toast-item {
+  min-width: 240px;
+  max-width: 360px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.88rem;
+}
+
+.toast-item.success {
+  border-color: #b7e4c7;
+  background: #edfdf3;
+  color: #11643d;
+}
+
+.toast-item.warning {
+  border-color: #f2d39b;
+  background: #fff6e8;
+  color: #8a5a00;
+}
+
+.toast-item.error {
+  border-color: #f4c7c3;
+  background: #fff1f0;
+  color: #8a1f17;
+}
+
 .payment-pagination {
   margin-top: 10px;
   display: grid;

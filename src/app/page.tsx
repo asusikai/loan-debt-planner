@@ -9,6 +9,7 @@ import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { PaymentTable } from "@/app/components/payment-table";
 import { StrategyComparison } from "@/app/components/strategy-comparison";
 import { ErrorBoundary } from "@/components/common/error-boundary";
+import { ToastProvider, useToast } from "@/components/common/toast";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebts } from "@/hooks/use-debts";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
@@ -54,6 +55,7 @@ function toCurrency(value: number): string {
 }
 
 function HomePageContent() {
+  const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState("700000");
@@ -163,16 +165,19 @@ function HomePageContent() {
 
     if (!name) {
       setErrorMessage("채무명은 필수입니다.");
+      pushToast("채무명은 필수입니다.", "warning");
       return;
     }
 
     if (balance <= 0 || annualRatePercent < 0 || minimumPayment < 0) {
       setErrorMessage("잔액은 1 이상, 금리/최소납입액은 0 이상이어야 합니다.");
+      pushToast("잔액/금리/최소납입액 입력을 확인해 주세요.", "warning");
       return;
     }
 
     if (prepaymentFeeRatePercent !== undefined && prepaymentFeeRatePercent < 0) {
       setErrorMessage("중도상환수수료율은 0 이상이어야 합니다.");
+      pushToast("중도상환수수료율은 0 이상이어야 합니다.", "warning");
       return;
     }
 
@@ -238,12 +243,14 @@ function HomePageContent() {
     try {
       if (!canCompareStrategies) {
         setErrorMessage("예산이 최소납입 합계를 충족해야 결과 계산이 가능합니다.");
+        pushToast("월 예산이 최소납입 합계를 충족해야 합니다.", "warning");
         setResults(null);
         return;
       }
 
       if (debts.length === 0) {
         setErrorMessage("채무를 1개 이상 입력해 주세요.");
+        pushToast("먼저 채무를 1개 이상 추가해 주세요.", "warning");
         setResults(null);
         return;
       }
@@ -259,13 +266,16 @@ function HomePageContent() {
 
       setResults({ avalanche, snowball });
       setErrorMessage("");
+      pushToast("전략 계산이 완료되었습니다.", "success");
     } catch (error) {
       if (error instanceof Error && error.message === "BUDGET_BELOW_MINIMUM") {
         setErrorMessage(
           `월 상환 예산이 최소납입 합계(${toCurrency(totalMinimum)})보다 작습니다.`,
         );
+        pushToast("월 상환 예산이 부족합니다.", "error");
       } else {
         setErrorMessage("시뮬레이션 중 오류가 발생했습니다.");
+        pushToast("시뮬레이션 중 오류가 발생했습니다.", "error");
       }
       setResults(null);
     }
@@ -365,8 +375,10 @@ function HomePageContent() {
 
 export default function HomePage() {
   return (
-    <ErrorBoundary>
-      <HomePageContent />
-    </ErrorBoundary>
+    <ToastProvider>
+      <ErrorBoundary>
+        <HomePageContent />
+      </ErrorBoundary>
+    </ToastProvider>
   );
 }
