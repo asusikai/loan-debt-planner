@@ -14,8 +14,21 @@ export class SortProvider {
   rankDebtsByStrategy<T extends Debt>(debts: T[], strategy: StrategyType): T[] {
     if (strategy === "avalanche") {
       return [...debts].sort((a, b) => {
+        if (a.annualRate === 0 && b.annualRate !== 0) {
+          return 1;
+        }
+
+        if (b.annualRate === 0 && a.annualRate !== 0) {
+          return -1;
+        }
+
         if (b.annualRate !== a.annualRate) {
           return b.annualRate - a.annualRate;
+        }
+
+        const maturityComparison = this.compareMaturity(a, b);
+        if (maturityComparison !== 0) {
+          return maturityComparison;
         }
 
         return this.getPriorityBalance(b) - this.getPriorityBalance(a);
@@ -28,6 +41,11 @@ export class SortProvider {
 
       if (aBalance !== bBalance) {
         return aBalance - bBalance;
+      }
+
+      const maturityComparison = this.compareMaturity(a, b);
+      if (maturityComparison !== 0) {
+        return maturityComparison;
       }
 
       return b.annualRate - a.annualRate;
@@ -45,5 +63,31 @@ export class SortProvider {
     }
 
     return debt.balance;
+  }
+
+  private compareMaturity<T extends Debt>(a: T, b: T): number {
+    const aMaturity = this.normalizeMaturity(a.maturityMonths);
+    const bMaturity = this.normalizeMaturity(b.maturityMonths);
+
+    if (aMaturity === bMaturity) {
+      return 0;
+    }
+
+    const aUrgent = aMaturity <= this.maturityUrgencyThresholdMonths;
+    const bUrgent = bMaturity <= this.maturityUrgencyThresholdMonths;
+
+    if (aUrgent !== bUrgent) {
+      return aUrgent ? -1 : 1;
+    }
+
+    return aMaturity - bMaturity;
+  }
+
+  private normalizeMaturity(maturityMonths: number | undefined): number {
+    if (!Number.isFinite(maturityMonths) || maturityMonths === undefined) {
+      return Number.POSITIVE_INFINITY;
+    }
+
+    return Math.max(0, maturityMonths);
   }
 }
