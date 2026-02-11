@@ -298,7 +298,7 @@
               1
             ],
             "details": "react-hook-form과 @hookform/resolvers/zod를 연동하여 입력값 유효성 검사를 수행하고 에러 메시지를 사용자에게 노출합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "비어있는 값이나 잘못된 형식(예: 음수 이율) 입력 시 적절한 경고 메시지가 출력되는지 확인합니다."
           },
           {
