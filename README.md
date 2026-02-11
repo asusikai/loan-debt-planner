@@ -1,14 +1,21 @@
 # DebtPilot
 
-다중 채무를 가진 사회초년생을 위한 상환 전략 비교 웹앱입니다.
+다중 채무를 가진 사용자가 상환 전략(Avalanche/Snowball)을 비교하고,
+수수료와 만기 조건까지 고려해 실질적인 상환 계획을 확인하는 웹앱입니다.
+
+핵심 가치는 다음과 같습니다.
+
+- 전략별 총이자, 완납 기간, 순절감액을 한 번에 비교
+- 월별 상환표를 통해 실행 가능한 납입 계획 확인
+- 입력 검증/오류 복구/회귀 테스트 기반의 신뢰 가능한 계산 결과 제공
 
 ## 기술 스택
 
-- Next.js (App Router)
-- React + TypeScript
-- Zod
-- Vitest
-- Playwright
+- Next.js 15 (App Router)
+- React 19 + TypeScript 5
+- Zod (입력 검증)
+- Vitest (단위 테스트)
+- Playwright (E2E 테스트)
 
 ## 시작하기
 
