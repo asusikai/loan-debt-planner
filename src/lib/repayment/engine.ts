@@ -1,4 +1,5 @@
 import { rankDebtsByStrategy } from "@/lib/repayment/strategies";
+import { calculateMonthlyInterest, preciseAdd, preciseSubtract, toKrw } from "@/utils/currency";
 import { calculatePrepaymentFee } from "@/utils/fee-calculator";
 import type {
   Debt,
@@ -24,10 +25,6 @@ function calculatePayoffDate(monthsToPayoff: number): string {
   const today = new Date();
   const payoff = new Date(today.getFullYear(), today.getMonth() + monthsToPayoff, 1);
   return `${payoff.getFullYear()}-${String(payoff.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function calculateMonthlyInterest(balance: number, annualRate: number): number {
-  return Math.floor((balance * annualRate) / 12);
 }
 
 function hasPositiveBalance(debts: WorkingDebt[]): boolean {
@@ -99,9 +96,9 @@ function simulateStrategyCore(
       );
       const principal = Math.max(0, minimum - interest);
 
-      debt.remainingBalance = Math.max(0, debt.remainingBalance - principal);
-      totalInterest += interest;
-      budgetLeft -= minimum;
+      debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, principal));
+      totalInterest = toKrw(preciseAdd(totalInterest, interest));
+      budgetLeft = toKrw(preciseSubtract(budgetLeft, minimum));
 
       monthlyPlans.push({
         monthIndex,
@@ -131,9 +128,9 @@ function simulateStrategyCore(
         exemptionMonths: debt.feeExemptionMonths ?? 0,
       });
 
-      debt.remainingBalance -= extra;
-      budgetLeft -= extra;
-      totalFeesPaid += fee;
+      debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, extra));
+      budgetLeft = toKrw(preciseSubtract(budgetLeft, extra));
+      totalFeesPaid = toKrw(preciseAdd(totalFeesPaid, fee));
 
       monthlyPlans.push({
         monthIndex,
