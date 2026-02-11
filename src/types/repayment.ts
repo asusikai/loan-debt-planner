@@ -56,3 +56,10 @@ export type StrategyResult = {
   payoffDate: string;
   monthlyPlans: MonthlyPlanItem[];
 };
+
+export type StrategySummary = {
+  strategyName: StrategyType;
+  totalInterest: number;
+  totalDuration: number;
+  monthlyPlans: MonthlyPlan[];
+};

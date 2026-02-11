@@ -39,7 +39,7 @@
               2
             ],
             "details": "strategyName(string), totalInterest(number), totalDuration(number), monthlyPlans(MonthlyPlan[]) 필드를 포함하며, 시각화에 필요한 핵심 지표를 담습니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "PRD에 명시된 시나리오 결과 요구 사항과 인터페이스 필드가 일치하는지 비교 검증합니다."
           },
           {
