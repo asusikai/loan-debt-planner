@@ -119,4 +119,68 @@ describe("simulateStrategy", () => {
     expect(withFee.totalFeesPaid).toBeGreaterThan(0);
     expect(withFee.netSavings).toBeLessThan(withoutFee.netSavings);
   });
+
+  it("applies fee right before exemption ends and removes it after exemption", () => {
+    const beforeBoundary = simulateStrategy(
+      {
+        monthlyBudget: 400000,
+        extraPayment: 100000,
+        debts: [
+          {
+            name: "boundary-loan",
+            balance: 2_000_000,
+            annualRate: 0.1,
+            minimumPayment: 150_000,
+            prepaymentFeeRate: 0.02,
+            feeExemptionMonths: 1,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    const afterBoundary = simulateStrategy(
+      {
+        monthlyBudget: 400000,
+        extraPayment: 100000,
+        debts: [
+          {
+            name: "boundary-loan",
+            balance: 2_000_000,
+            annualRate: 0.1,
+            minimumPayment: 150_000,
+            prepaymentFeeRate: 0.02,
+            feeExemptionMonths: 0,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    expect(beforeBoundary.totalFeesPaid).toBeGreaterThan(0);
+    expect(afterBoundary.totalFeesPaid).toBe(0);
+  });
+
+  it("can return negative net savings when fee outweighs interest savings", () => {
+    const result = simulateStrategy(
+      {
+        monthlyBudget: 250000,
+        extraPayment: 10_000,
+        debts: [
+          {
+            name: "low-rate-high-fee",
+            balance: 2_500_000,
+            annualRate: 0.01,
+            minimumPayment: 200_000,
+            prepaymentFeeRate: 0.2,
+            feeExemptionMonths: 12,
+          },
+        ],
+      },
+      "snowball",
+    );
+
+    expect(result.totalFeesPaid).toBeGreaterThan(0);
+    expect(result.netSavings).toBeLessThan(0);
+  });
 });
