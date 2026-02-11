@@ -19,3 +19,21 @@ test("채무 입력/예산 설정 후 전략 결과 렌더링", async ({ page })
   await expect(page.getByRole("heading", { name: "Snowball" })).toBeVisible();
   await expect(page.getByText("월별표", { exact: false })).toBeVisible();
 });
+
+test("상태 초기화 버튼으로 입력 상태 복구", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByLabel(/월 상환 예산\(원\)/).fill("123456");
+  await page.getByRole("button", { name: "상태 초기화" }).click();
+
+  await expect(page.getByLabel(/월 상환 예산\(원\)/)).toHaveValue("700000");
+});
+
+test("비정상 localStorage 값 주입 시에도 앱이 렌더링됨", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("debtpilot_debts", "{broken-json");
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "DebtPilot" })).toBeVisible();
+});

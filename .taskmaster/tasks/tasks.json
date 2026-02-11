@@ -617,7 +617,7 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -669,7 +669,7 @@
               4
             ],
             "details": "모든 채무 데이터를 삭제했을 때 LocalStorage가 비워지는지, 잘못된 경로 진입 시 홈으로 리다이렉션되는지 등 Task 9에서 보강한 예외 처리 로직을 통합 테스트 범위에 포함합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "LocalStorage를 강제로 삭제하거나 비정상적인 데이터를 주입했을 때 앱이 크래시되지 않고 적절한 오류 안내를 노출하는지 E2E 테스트를 통해 검증합니다."
           }
         ]
