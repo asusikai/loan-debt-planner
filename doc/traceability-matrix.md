@@ -20,3 +20,10 @@
   - `moves zero-rate debts to the end for avalanche`
 - `src/lib/repayment/engine-regression.test.ts`
   - `stays stable for seed=..., strategy=...` 매트릭스 케이스
+
+## 로그 문서 교차 참조
+
+- 개선 로그: `doc/improvement-log.md`
+  - 계산 정합성, 우선순위 조정 배경, 기술적 통찰 반영 여부 확인
+- AI 협업 로그: `doc/ai-collaboration-log.md`
+  - 제안 검증/수정 근거와 테스트 확장 이력 반영 여부 확인
