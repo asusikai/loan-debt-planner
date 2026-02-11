@@ -139,6 +139,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
         <thead>
           <tr>
             <th>월</th>
+            <th>채무 항목 수</th>
             <th>총 납입액</th>
             <th>총 이자</th>
             <th>누적 이자</th>
@@ -157,6 +158,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
               <Fragment key={`group-${group.monthIndex}`}>
                 <tr key={`summary-${group.monthIndex}`} className={isFinalMonth ? "payoff-month" : ""}>
                   <td>{group.monthIndex}월</td>
+                  <td>{group.items.length}</td>
                   <td>{toCurrency(group.totalPayment)}</td>
                   <td
                     className={
@@ -199,7 +201,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
                 </tr>
                 {isExpanded ? (
                   <tr id={`month-detail-${group.monthIndex}`} key={`detail-${group.monthIndex}`}>
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <table className="nested-table">
                         <thead>
                           <tr>
