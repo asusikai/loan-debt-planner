@@ -9,7 +9,7 @@
         "testStrategy": "TypeScript 컴파일러를 통해 타입 정의가 올바른지 확인하고, 정의된 타입이 PRD의 데이터 모델 요구사항과 일치하는지 검토합니다.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -64,7 +64,7 @@
               4
             ],
             "details": "src/types/repayment.ts 파일에서 모든 타입을 export하고, 각 필드에 대해 JSDoc 주석을 작성하여 가독성을 높입니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "IDE에서 자동 완성 및 타입 힌트가 정상적으로 표시되는지 확인합니다."
           }
         ]
