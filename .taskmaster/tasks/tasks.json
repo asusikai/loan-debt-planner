@@ -279,7 +279,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -309,7 +309,7 @@
               1
             ],
             "details": "상태 관리 라이브러리(Zustand 등) 또는 React Context를 사용하여 채무 목록 배열을 전역적으로 관리하고 변경 함수를 제공합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "단위 테스트를 통해 추가된 채무가 배열에 올바르게 포함되고 삭제 시 해당 항목이 제거되는지 검증합니다."
           },
           {

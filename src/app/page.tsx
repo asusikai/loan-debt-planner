@@ -9,6 +9,7 @@ import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { PaymentTable } from "@/app/components/payment-table";
 import { StrategyComparison } from "@/app/components/strategy-comparison";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
+import { useDebts } from "@/hooks/use-debts";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
 import type { EditableDebt, StrategyResult } from "@/types/repayment";
@@ -52,7 +53,7 @@ function toCurrency(value: number): string {
 }
 
 export default function HomePage() {
-  const [debts, setDebts] = useState<EditableDebt[]>(initialDebts);
+  const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState("700000");
   const [extraPayment, setExtraPayment] = useState("100000");
@@ -67,13 +68,13 @@ export default function HomePage() {
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { loadBudgetConfig, saveBudgetConfig, clearBudgetConfig } = useBudgetStorage();
-  const { storageWarning, clearStorageWarning, loadDebts, saveDebts, deleteDebt } = useDebtStorage();
+  const { storageWarning, clearStorageWarning, loadDebts, saveDebts } = useDebtStorage();
 
   useEffect(() => {
     const storedDebts = loadDebts();
     if (storedDebts.length > 0) {
-      setDebts(storedDebts);
-    }
+    setDebts(storedDebts);
+  }
   }, [loadDebts]);
 
   useEffect(() => {
@@ -187,12 +188,7 @@ export default function HomePage() {
           : undefined,
     };
 
-    setDebts((prev) => {
-      if (editingId) {
-        return prev.map((debt) => (debt.id === editingId ? payload : debt));
-      }
-      return [...prev, payload];
-    });
+    upsertDebt(payload);
 
     setErrorMessage("");
     resetForm();
@@ -223,7 +219,7 @@ export default function HomePage() {
       return;
     }
 
-    setDebts((prev) => deleteDebt(debtPendingDeletion.id, prev));
+    removeDebt(debtPendingDeletion.id);
     if (editingId === debtPendingDeletion.id) {
       resetForm();
     }
