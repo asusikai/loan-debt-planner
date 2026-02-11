@@ -2,6 +2,28 @@ import { describe, expect, it } from "vitest";
 
 import { simulateStrategy } from "@/lib/repayment/engine";
 
+function monthEndRemainingTotals(
+  plans: Array<{ monthIndex: number; debtName: string; remainingBalance: number }>,
+): number[] {
+  const monthDebtBalance = new Map<number, Map<string, number>>();
+
+  for (const plan of plans) {
+    const debtMap = monthDebtBalance.get(plan.monthIndex) ?? new Map<string, number>();
+    debtMap.set(plan.debtName, plan.remainingBalance);
+    monthDebtBalance.set(plan.monthIndex, debtMap);
+  }
+
+  const sortedMonths = [...monthDebtBalance.keys()].sort((a, b) => a - b);
+  return sortedMonths.map((month) => {
+    const debtMap = monthDebtBalance.get(month);
+    if (!debtMap) {
+      return 0;
+    }
+
+    return [...debtMap.values()].reduce((sum, value) => sum + value, 0);
+  });
+}
+
 describe("simulateStrategy", () => {
   it("single debt should be payable", () => {
     const result = simulateStrategy(
@@ -183,4 +205,64 @@ describe("simulateStrategy", () => {
     expect(result.totalFeesPaid).toBeGreaterThan(0);
     expect(result.netSavings).toBeLessThan(0);
   });
+
+  it("keeps monthly remaining balance identical regardless of fee amount", () => {
+    const withFee = simulateStrategy(
+      {
+        monthlyBudget: 650000,
+        extraPayment: 150000,
+        debts: [
+          {
+            name: "alpha",
+            balance: 4_500_000,
+            annualRate: 0.16,
+            minimumPayment: 200_000,
+            prepaymentFeeRate: 0.03,
+            feeExemptionMonths: 6,
+          },
+          {
+            name: "beta",
+            balance: 3_000_000,
+            annualRate: 0.09,
+            minimumPayment: 180_000,
+            prepaymentFeeRate: 0.02,
+            feeExemptionMonths: 6,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    const withoutFee = simulateStrategy(
+      {
+        monthlyBudget: 650000,
+        extraPayment: 150000,
+        debts: [
+          {
+            name: "alpha",
+            balance: 4_500_000,
+            annualRate: 0.16,
+            minimumPayment: 200_000,
+            prepaymentFeeRate: 0,
+            feeExemptionMonths: 6,
+          },
+          {
+            name: "beta",
+            balance: 3_000_000,
+            annualRate: 0.09,
+            minimumPayment: 180_000,
+            prepaymentFeeRate: 0,
+            feeExemptionMonths: 6,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    expect(withFee.totalFeesPaid).toBeGreaterThan(0);
+    expect(monthEndRemainingTotals(withFee.monthlyPlans)).toEqual(
+      monthEndRemainingTotals(withoutFee.monthlyPlans),
+    );
+  });
+
 });
