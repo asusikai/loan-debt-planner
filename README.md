@@ -19,12 +19,27 @@
 
 ## 시작하기
 
+### 사전 요구사항
+
+- Node.js 20 이상
+- pnpm 9 이상
+
+### 로컬 실행
+
 ```bash
 pnpm install
 pnpm dev
 ```
 
 브라우저에서 `http://localhost:3000`으로 접속합니다.
+
+### 검증 및 빌드
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
 ## 스크립트
 
