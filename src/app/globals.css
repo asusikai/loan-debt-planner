@@ -286,6 +286,10 @@ table {
   font-weight: 600;
 }
 
+.strategy-recommendation {
+  margin-top: 10px;
+}
+
 .payment-pagination {
   margin-top: 10px;
   display: grid;

@@ -22,6 +22,10 @@ export function StrategyComparison({
     results.avalanche.totalInterest <= results.snowball.totalInterest ? "avalanche" : "snowball";
   const durationWinner =
     results.avalanche.monthsToPayoff <= results.snowball.monthsToPayoff ? "avalanche" : "snowball";
+  const recommendation =
+    selectedStrategy === "avalanche"
+      ? "Avalanche는 총 이자 비용을 줄이는 데 유리한 전략입니다."
+      : "Snowball은 작은 채무부터 정리해 심리적 동기 부여에 유리합니다.";
 
   return (
     <>
@@ -66,6 +70,7 @@ export function StrategyComparison({
           Snowball 월별표
         </button>
       </div>
+      <p className="muted strategy-recommendation">추천: {recommendation}</p>
     </>
   );
 }
