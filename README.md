@@ -67,3 +67,9 @@ pnpm build
 - API 명세: `doc/api-spec.md`
 - DB 설계: `doc/db-design.md`
 - 에러 정책: `doc/error-policy.md`
+
+### 내부 고도화 문서
+
+- 개선 로그: `doc/improvement-log.md`
+- AI 협업 로그: `doc/ai-collaboration-log.md`
+- 추적성 매트릭스: `doc/traceability-matrix.md`
