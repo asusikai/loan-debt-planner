@@ -245,6 +245,19 @@ function HomePageContent() {
     setErrorMessage("");
   }
 
+  function handleResetState() {
+    setDebts(initialDebts);
+    setMonthlyBudget("700000");
+    setExtraPayment("100000");
+    setResults(null);
+    setErrorMessage("");
+    setDebtPendingDeletion(null);
+    setDeleteTriggerButton(null);
+    setErrorModal({ open: false, title: "", message: "" });
+    clearBudgetConfig();
+    pushToast("입력 상태가 초기화되었습니다.", "success");
+  }
+
   function handleCalculate() {
     try {
       if (!canCompareStrategies) {
@@ -306,6 +319,9 @@ function HomePageContent() {
     <main>
       <h1>DebtPilot</h1>
       <p className="muted">채무 입력 후 상환 전략을 비교해 총이자와 완납 기간을 확인하세요.</p>
+      <button type="button" className="ghost small" onClick={handleResetState}>
+        상태 초기화
+      </button>
       {storageWarning ? (
         <p className="storage-warning" role="status">
           {storageWarning}

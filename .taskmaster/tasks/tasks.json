@@ -549,7 +549,7 @@
           2,
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -602,7 +602,7 @@
               4
             ],
             "details": "Error Boundary의 Reset 기능을 활용하여 에러 발생 시 '다시 시도' 버튼을 제공하고, 상태 관리 도구(Zustand 등)의 초기화 함수를 연결하여 안전한 복구를 지원합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "에러 폴백 화면에서 '다시 시도' 버튼을 클릭했을 때 앱이 정상 상태로 복구되고 에러 로그가 클리어되는지 확인합니다."
           }
         ]
