@@ -287,7 +287,7 @@
             "description": "Task 2에서 정의된 Zod 스키마를 UI 구현에 맞게 조정하고 TypeScript 타입을 정의합니다.",
             "dependencies": [],
             "details": "src/schemas/debt.ts(예상 경로)의 스키마를 확인하여 Debt, DebtInput 타입을 정의하고 폼 유효성 검사를 위한 기반을 마련합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "정의된 타입이 Zod 스키마와 일치하는지 확인하고 폼 데이터 객체의 유효성을 코드로 검증합니다."
           },
           {
