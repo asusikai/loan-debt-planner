@@ -124,6 +124,10 @@ export type StrategyResult = {
   strategy: StrategyType;
   /** Total paid interest in KRW. */
   totalInterest: number;
+  /** Total paid prepayment fees in KRW. */
+  totalFeesPaid: number;
+  /** Net savings after deducting paid fees from gross interest savings. */
+  netSavings: number;
   /** Number of months until full payoff. */
   monthsToPayoff: number;
   /** Payoff month in YYYY-MM format. */

@@ -1,4 +1,5 @@
 import { rankDebtsByStrategy } from "@/lib/repayment/strategies";
+import { calculatePrepaymentFee } from "@/utils/fee-calculator";
 import type {
   Debt,
   MonthlyPlanItem,
@@ -8,6 +9,14 @@ import type {
 } from "@/types/repayment";
 
 type WorkingDebt = Debt & { remainingBalance: number };
+
+type SimulationCoreResult = {
+  totalInterest: number;
+  totalFeesPaid: number;
+  monthsToPayoff: number;
+  payoffDate: string;
+  monthlyPlans: MonthlyPlanItem[];
+};
 
 const MAX_MONTHS = 1200;
 
@@ -29,6 +38,28 @@ export function simulateStrategy(
   input: ScenarioInput,
   strategy: StrategyType,
 ): StrategyResult {
+  const result = simulateStrategyCore(input, strategy);
+  const baseline =
+    input.extraPayment > 0
+      ? simulateStrategyCore({ ...input, extraPayment: 0 }, strategy)
+      : result;
+  const grossSavings = Math.max(0, baseline.totalInterest - result.totalInterest);
+
+  return {
+    strategy,
+    totalInterest: result.totalInterest,
+    totalFeesPaid: result.totalFeesPaid,
+    netSavings: grossSavings - result.totalFeesPaid,
+    monthsToPayoff: result.monthsToPayoff,
+    payoffDate: result.payoffDate,
+    monthlyPlans: result.monthlyPlans,
+  };
+}
+
+function simulateStrategyCore(
+  input: ScenarioInput,
+  strategy: StrategyType,
+): SimulationCoreResult {
   const minimumRequired = input.debts.reduce(
     (sum, debt) => sum + debt.minimumPayment,
     0,
@@ -46,6 +77,7 @@ export function simulateStrategy(
 
   const monthlyPlans: MonthlyPlanItem[] = [];
   let totalInterest = 0;
+  let totalFeesPaid = 0;
   let monthIndex = 0;
 
   while (hasPositiveBalance(workingDebts) && monthIndex < MAX_MONTHS) {
@@ -92,8 +124,16 @@ export function simulateStrategy(
       }
 
       const extra = Math.min(budgetLeft, debt.remainingBalance);
+      const fee = calculatePrepaymentFee({
+        amount: extra,
+        rate: debt.prepaymentFeeRate ?? 0,
+        elapsedMonths: monthIndex - 1,
+        exemptionMonths: debt.feeExemptionMonths ?? 0,
+      });
+
       debt.remainingBalance -= extra;
       budgetLeft -= extra;
+      totalFeesPaid += fee;
 
       monthlyPlans.push({
         monthIndex,
@@ -111,8 +151,8 @@ export function simulateStrategy(
   }
 
   return {
-    strategy,
     totalInterest,
+    totalFeesPaid,
     monthsToPayoff: monthIndex,
     payoffDate: calculatePayoffDate(monthIndex),
     monthlyPlans,

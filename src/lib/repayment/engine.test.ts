@@ -22,6 +22,7 @@ describe("simulateStrategy", () => {
 
     expect(result.monthsToPayoff).toBeGreaterThan(0);
     expect(result.totalInterest).toBeGreaterThanOrEqual(0);
+    expect(result.totalFeesPaid).toBe(0);
   });
 
   it("throws when budget is below minimum", () => {
@@ -76,5 +77,46 @@ describe("simulateStrategy", () => {
 
     expect(avalancheFirstExtra?.debtName).toBe("high-rate");
     expect(snowballFirstExtra?.debtName).toBe("small-balance");
+  });
+
+  it("applies prepayment fee and reflects it in net savings", () => {
+    const withFee = simulateStrategy(
+      {
+        monthlyBudget: 500000,
+        extraPayment: 100000,
+        debts: [
+          {
+            name: "fee-loan",
+            balance: 4_000_000,
+            annualRate: 0.12,
+            minimumPayment: 200_000,
+            prepaymentFeeRate: 0.02,
+            feeExemptionMonths: 12,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    const withoutFee = simulateStrategy(
+      {
+        monthlyBudget: 500000,
+        extraPayment: 100000,
+        debts: [
+          {
+            name: "fee-loan",
+            balance: 4_000_000,
+            annualRate: 0.12,
+            minimumPayment: 200_000,
+            prepaymentFeeRate: 0,
+            feeExemptionMonths: 12,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    expect(withFee.totalFeesPaid).toBeGreaterThan(0);
+    expect(withFee.netSavings).toBeLessThan(withoutFee.netSavings);
   });
 });
