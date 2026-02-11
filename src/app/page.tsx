@@ -17,22 +17,7 @@ import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
 import type { EditableDebt, StrategyResult } from "@/types/repayment";
 
-const initialDebts: EditableDebt[] = [
-  {
-    id: "debt-1",
-    name: "신용대출A",
-    balance: 5000000,
-    annualRate: 0.082,
-    minimumPayment: 200000,
-  },
-  {
-    id: "debt-2",
-    name: "카드리볼빙",
-    balance: 1200000,
-    annualRate: 0.149,
-    minimumPayment: 120000,
-  },
-];
+const initialDebts: EditableDebt[] = [];
 
 const emptyForm: DebtFormValues = {
   name: "",
@@ -59,8 +44,8 @@ function HomePageContent() {
   const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [monthlyBudget, setMonthlyBudget] = useState("700000");
-  const [extraPayment, setExtraPayment] = useState("100000");
+  const [monthlyBudget, setMonthlyBudget] = useState("");
+  const [extraPayment, setExtraPayment] = useState("");
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
     "avalanche",
   );
@@ -247,8 +232,8 @@ function HomePageContent() {
 
   function handleResetState() {
     setDebts(initialDebts);
-    setMonthlyBudget("700000");
-    setExtraPayment("100000");
+    setMonthlyBudget("");
+    setExtraPayment("");
     setResults(null);
     setErrorMessage("");
     setDebtPendingDeletion(null);
