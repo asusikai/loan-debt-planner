@@ -242,7 +242,7 @@
               2
             ],
             "details": "runStrategySimulation 함수를 구현하여 strategyType('Avalanche' | 'Snowball')에 따라 상위 정렬 로직을 선택 실행하고, 정렬된 리스트를 엔진에 전달하여 시뮬레이션을 수행합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Mock 엔진을 사용하여 선택된 전략에 맞는 정렬된 데이터가 엔진으로 전달되는지 spyOn을 통해 검증합니다."
           },
           {
