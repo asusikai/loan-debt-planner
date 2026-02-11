@@ -275,6 +275,17 @@ table {
   font-weight: 600;
 }
 
+.winner-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #9ad1ff;
+  background: #eef7ff;
+  color: #0b4fbe;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .payment-pagination {
   margin-top: 10px;
   display: grid;

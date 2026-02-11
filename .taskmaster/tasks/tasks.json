@@ -444,7 +444,7 @@
               2
             ],
             "details": "두 전략의 수치를 비교하여 '최저 이자' 또는 '최단 기간'에 해당하는 지표에 강조 색상(예: Green)과 배지(Badge)를 추가하는 로직을 구현합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Avalanche가 이자가 낮을 때와 Snowball이 기간이 짧을 때 각각 올바른 위치에 하이라이트가 적용되는지 시각적으로 검증합니다."
           },
           {
