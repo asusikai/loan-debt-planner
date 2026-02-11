@@ -1,3 +1,5 @@
+import { budgetFormSchema } from "@/lib/validation/budget-schema";
+
 type BudgetFormProps = {
   monthlyBudget: string;
   extraPayment: string;
@@ -21,8 +23,15 @@ export function BudgetForm({
 }: BudgetFormProps) {
   const budgetNumber = Number(monthlyBudget || "0");
   const extraPaymentNumber = Number(extraPayment || "0");
-  const isInsufficient = hasDebts && Number.isFinite(budgetNumber) && budgetNumber < minimumRequired;
-  const isInvalidExtraPayment = Number.isFinite(extraPaymentNumber) && extraPaymentNumber < 0;
+  const parsed = budgetFormSchema.safeParse({
+    monthlyBudget,
+    extraPayment,
+    minimumRequired,
+    hasDebts,
+  });
+  const issues = parsed.success ? [] : parsed.error.issues;
+  const monthlyBudgetError = issues.find((issue) => issue.path[0] === "monthlyBudget")?.message;
+  const extraPaymentError = issues.find((issue) => issue.path[0] === "extraPayment")?.message;
   const totalAvailablePayment = Math.max(0, budgetNumber) + Math.max(0, extraPaymentNumber);
 
   return (
@@ -36,7 +45,7 @@ export function BudgetForm({
           value={monthlyBudget}
           onChange={(event) => onChangeMonthlyBudget(event.target.value)}
           disabled={!hasDebts}
-          aria-invalid={isInsufficient}
+          aria-invalid={Boolean(monthlyBudgetError)}
         />
       </label>
       <p className="muted budget-hint">최소납입 합계: {toCurrency(minimumRequired)}</p>
@@ -49,16 +58,16 @@ export function BudgetForm({
           value={extraPayment}
           onChange={(event) => onChangeExtraPayment(event.target.value)}
           disabled={!hasDebts}
-          aria-invalid={isInvalidExtraPayment}
+          aria-invalid={Boolean(extraPaymentError)}
         />
       </label>
       <p className="muted budget-hint">월 총 가용 상환: {toCurrency(totalAvailablePayment)}</p>
       {!hasDebts ? <p className="field-warning">채무를 먼저 추가해야 예산을 설정할 수 있습니다.</p> : null}
-      {hasDebts && isInsufficient ? (
-        <p className="field-error">예산이 최소납입 합계보다 작습니다.</p>
+      {hasDebts && monthlyBudgetError ? (
+        <p className="field-error">{monthlyBudgetError}</p>
       ) : null}
-      {hasDebts && isInvalidExtraPayment ? (
-        <p className="field-error">추가 상환 금액은 0 이상이어야 합니다.</p>
+      {hasDebts && extraPaymentError ? (
+        <p className="field-error">{extraPaymentError}</p>
       ) : null}
     </div>
   );

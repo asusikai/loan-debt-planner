@@ -347,7 +347,7 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -375,7 +375,7 @@
               2
             ],
             "details": "react-hook-form의 resolver와 Task 2의 Zod 스키마를 연동합니다. '입력값 < 최소 납입액 합계'인 경우 사용자에게 즉각적인 에러 피드백을 제공합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "총 최소 납입액보다 낮은 금액을 입력했을 때 '예산이 최소 납입액보다 적습니다'라는 경고 메시지가 표시되는지 확인합니다."
           },
           {
