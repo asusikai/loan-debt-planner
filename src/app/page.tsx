@@ -8,6 +8,7 @@ import { DebtList } from "@/app/components/debt-list";
 import { DebtForm, type DebtFormValues } from "@/app/components/debt-form";
 import { PaymentTable } from "@/app/components/payment-table";
 import { StrategyComparison } from "@/app/components/strategy-comparison";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebts } from "@/hooks/use-debts";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
@@ -52,7 +53,7 @@ function toCurrency(value: number): string {
   return `${value.toLocaleString()}원`;
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [monthlyBudget, setMonthlyBudget] = useState("700000");
@@ -359,5 +360,13 @@ export default function HomePage() {
         restoreFocusTo={deleteTriggerButton}
       />
     </main>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ErrorBoundary>
+      <HomePageContent />
+    </ErrorBoundary>
   );
 }

@@ -294,6 +294,15 @@ table {
   margin-top: 12px;
 }
 
+.error-fallback {
+  margin: 24px auto;
+  max-width: 640px;
+  border: 1px solid #f4c7c3;
+  background: #fff1f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
 .payment-pagination {
   margin-top: 10px;
   display: grid;
