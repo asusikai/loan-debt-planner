@@ -1,34 +1,684 @@
 {
-  "changeRequests": [
-    {
-      "id": "CR-2026-02-MATURITY-MONTHS",
-      "title": "만기 입력 방식 날짜 -> 잔여 개월 수 전환",
-      "status": "in-progress",
-      "priority": "high",
-      "owner": "dev",
-      "description": "채무 입력의 만기 필드를 날짜 선택에서 잔여 개월 수 선택으로 변경하고 관련 타입/검증/UI/문서를 정합성 있게 갱신한다.",
-      "subtasks": [
-        {
-          "id": "CR-2026-02-MATURITY-MONTHS-1",
-          "title": "스펙 문서 수정 (요구사항/PRD/문제정의/DB)",
-          "status": "done"
-        },
-        {
-          "id": "CR-2026-02-MATURITY-MONTHS-2",
-          "title": "도메인 타입과 검증 스키마 변경 (maturityDate -> maturityMonths)",
-          "status": "in-progress"
-        },
-        {
-          "id": "CR-2026-02-MATURITY-MONTHS-3",
-          "title": "입력/목록 UI를 개월 수 선택으로 변경",
-          "status": "pending"
-        },
-        {
-          "id": "CR-2026-02-MATURITY-MONTHS-4",
-          "title": "typecheck/test 및 커밋",
-          "status": "pending"
-        }
-      ]
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "도메인 타입 및 인터페이스 정의",
+        "description": "DebtPilot에서 사용할 핵심 데이터 모델을 TypeScript 인터페이스로 정의합니다.",
+        "details": "src/types/repayment.ts 파일을 생성하고 PRD에 명시된 Debt(채무), Scenario(시나리오), StrategyResult(결과 지표), MonthlyPlan(월별 계획 항목) 타입을 정의합니다. 각 필드는 명확한 타입(number, string 등)과 선택적 필드(? 처리)를 포함해야 합니다.",
+        "testStrategy": "TypeScript 컴파일러를 통해 타입 정의가 올바른지 확인하고, 정의된 타입이 PRD의 데이터 모델 요구사항과 일치하는지 검토합니다.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Debt(채무) 기본 인터페이스 정의",
+            "description": "개별 채무 데이터를 관리하기 위한 Debt 인터페이스를 src/types/repayment.ts에 정의합니다.",
+            "dependencies": [],
+            "details": "id(string), name(string), balance(number), interestRate(number), minPayment(number) 필드를 포함해야 합니다. 각 필드는 필수 값으로 설정합니다.",
+            "status": "pending",
+            "testStrategy": "TypeScript 컴파일러(tsc)를 실행하여 문법 오류가 없는지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "MonthlyPlan 및 MonthlyDebtStatus 타입 정의",
+            "description": "월별 상환 진행 상태와 개별 채무의 월별 변화를 기록하기 위한 타입을 정의합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "MonthlyPlan 인터페이스는 month(number), remainingBalance(number), totalPaidInterest(number), payments(MonthlyDebtStatus[])를 포함하도록 설계합니다.",
+            "status": "pending",
+            "testStrategy": "정의된 인터페이스가 월별 상환 내역을 표현하기에 구조적으로 충분한지 코드 리뷰를 통해 확인합니다."
+          },
+          {
+            "id": 3,
+            "title": "StrategyResult 결과 지표 인터페이스 정의",
+            "description": "시뮬레이션이 완료된 후 요약된 결과를 나타내는 StrategyResult 타입을 정의합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "strategyName(string), totalInterest(number), totalDuration(number), monthlyPlans(MonthlyPlan[]) 필드를 포함하며, 시각화에 필요한 핵심 지표를 담습니다.",
+            "status": "pending",
+            "testStrategy": "PRD에 명시된 시나리오 결과 요구 사항과 인터페이스 필드가 일치하는지 비교 검증합니다."
+          },
+          {
+            "id": 4,
+            "title": "Scenario 시나리오 설정 인터페이스 정의",
+            "description": "사용자가 입력하는 전체 시뮬레이션 환경 설정을 위한 Scenario 타입을 정의합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "debts(Debt[]), monthlyBudget(number), strategy('SNOWBALL' | 'AVALANCHE') 필드를 포함하여 계산 엔진의 입력값으로 사용되도록 합니다.",
+            "status": "pending",
+            "testStrategy": "리터럴 타입을 사용하여 전략명이 올바르게 제한되는지 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "타입 내보내기 및 JSDoc 문서화",
+            "description": "정의된 모든 인터페이스를 외부 모듈에서 참조 가능하도록 export하고 설명을 추가합니다.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "src/types/repayment.ts 파일에서 모든 타입을 export하고, 각 필드에 대해 JSDoc 주석을 작성하여 가독성을 높입니다.",
+            "status": "pending",
+            "testStrategy": "IDE에서 자동 완성 및 타입 힌트가 정상적으로 표시되는지 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Zod 기반 입력 검증 스키마 구현",
+        "description": "채무 정보 및 월 예산 입력을 위한 검증 로직을 구현합니다.",
+        "details": "src/lib/validation/debtSchema.ts 파일을 생성하여 Zod 스키마를 정의합니다. 연이율(0-100), 양수 잔액, 최소 납입액 등을 검증하고, 특히 '월 상환 가능 금액 < 모든 채무의 최소 납입액 합계'인 경우를 걸러내는 비즈니스 검증 로직을 포함합니다.",
+        "testStrategy": "Vitest를 사용하여 유효한 입력과 유효하지 않은 입력(음수, 범위 초과, 예산 부족)에 대한 스키마 검증 테스트 케이스를 작성합니다.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "기본 채무(Debt) 정보 Zod 스키마 정의",
+            "description": "개별 채무 항목에 대한 데이터 유효성 검사 규칙을 정의합니다.",
+            "dependencies": [],
+            "details": "src/lib/validation/debtSchema.ts 파일에서 개별 Debt 객체의 balance(양수), interestRate(0-100), minPayment(양수) 필드를 포함하는 z.object 스키마를 작성합니다.",
+            "status": "done",
+            "testStrategy": "단일 채무 객체에 대해 유효한 값과 무효한 값(음수, 범위 초과)을 넣었을 때 Zod의 parse 결과가 예상대로 나오는지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "전체 폼 및 월 예산 스키마 정의",
+            "description": "채무 목록과 월 상환 예산을 포함하는 전체 입력 폼의 구조를 정의합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "월 상환 가능 금액(monthlyBudget) 필드와 Subtask 1에서 정의한 채무 스키마의 배열(debts)을 포함하는 통합 Zod 스키마를 구성합니다.",
+            "status": "done",
+            "testStrategy": "전체 폼 데이터 객체를 구성하여 필수 필드 누락 시 에러가 발생하는지 테스트합니다."
+          },
+          {
+            "id": 3,
+            "title": "예산 부족 방지를 위한 비즈니스 교차 검증 구현",
+            "description": "월 예산이 모든 채무의 최소 납입액 합계보다 큰지 검증하는 로직을 추가합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "z.object().refine() 또는 superRefine()을 사용하여 'monthlyBudget >= sum(debts.minPayment)' 조건을 검사하고 실패 시 사용자 정의 에러 메시지를 반환하도록 구현합니다.",
+            "status": "done",
+            "testStrategy": "예산이 최소 상환액 합계보다 적은 경우와 같은 경우, 큰 경우 세 가지 시나리오에 대해 검증 성공/실패 여부를 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "스키마 단위 테스트 환경 및 기초 케이스 작성",
+            "description": "Vitest를 사용하여 정의된 스키마의 유효성을 자동으로 검증하는 테스트 파일을 생성합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "src/lib/validation/debtSchema.test.ts 파일을 생성하고 정상적인 입력 데이터 세트에 대해 스키마 검증이 통과하는지 확인하는 기초 테스트 코드를 작성합니다.",
+            "status": "pending",
+            "testStrategy": "vitest 명령어를 통해 작성된 테스트 코드가 정상적으로 실행되고 통과하는지 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "경계값 및 예외 시나리오 상세 테스트 구현",
+            "description": "다양한 에러 케이스를 포함한 포괄적인 유효성 검사 테스트를 수행합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "이율 0%와 100%, 잔액 0원, 매우 큰 금액 입력 등 경계값 테스트와 비즈니스 로직 위반 시의 에러 메시지 정확도를 확인하는 테스트 케이스를 추가합니다.",
+            "status": "pending",
+            "testStrategy": "모든 에러 시나리오에 대해 ZodError가 발생하며, 정의한 커스텀 메시지가 정확하게 반환되는지 검증합니다."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "순수 함수 기반 상환 시뮬레이션 엔진 개발",
+        "description": "상환 전략과 무관하게 공통적으로 적용되는 월별 이자 계산 및 잔액 감소 로직을 구현합니다.",
+        "details": "src/lib/repayment/engine.ts에 핵심 계산 함수를 작성합니다. 월별 이자 = 잔액 * (연이율 / 12 / 100) 로직을 적용하고, 최소 납입액을 먼저 차감한 뒤 남은 가용 예산을 특정 우선순위에 따라 배분하는 순수 함수를 구현합니다. 부동 소수점 오차 방지를 위해 KRW 정수 처리에 유의합니다.",
+        "testStrategy": "결정적(Deterministic) 계산 결과가 나오는지 확인하기 위해 고정된 입력값에 대한 기대 출력값을 비교하는 단위 테스트를 수행합니다.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "KRW 정수 처리를 포함한 월별 이자 계산 함수 구현",
+            "description": "부동 소수점 오차를 방지하면서 월별 이자를 계산하는 순수 함수를 작성합니다.",
+            "dependencies": [],
+            "details": "src/lib/repayment/engine.ts 파일에 calculateMonthlyInterest 함수를 작성합니다. Math.floor를 사용하여 원 단위 이하를 절삭하며, 연이율을 12로 나눈 월이율을 적용하여 발생 이자를 계산합니다.",
+            "status": "done",
+            "testStrategy": "특정 원금과 이율 입력 시 기대되는 이자 금액(정수)이 정확히 반환되는지 확인하는 단위 테스트를 수행합니다."
+          },
+          {
+            "id": 2,
+            "title": "단일 채무 최소 납입액 처리 로직 구현",
+            "description": "한 달의 상환 주기에서 최소 납입액이 이자와 원금에 어떻게 적용되는지 계산하는 로직을 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "채무의 최소 납입액을 입력받아 발생한 이자를 먼저 변제하고, 남은 금액으로 원금을 감액하는 순수 함수를 구현합니다. 이자가 최소 납입액보다 큰 경우 원금이 가산되는 로직도 포함합니다.",
+            "status": "done",
+            "testStrategy": "최소 납입액이 이자보다 작은 경우와 큰 경우에 대해 각각 원금 변화 수치가 정확한지 검증합니다."
+          },
+          {
+            "id": 3,
+            "title": "전략별 우선순위에 따른 가용 예산 배분 함수 구현",
+            "description": "모든 채무의 최소 납입액을 지불한 후 남은 예산을 우선순위 채무에 집중 투입하는 로직을 구현합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "상환 전략(눈덩이, 산더미 등)에 의해 정렬된 채무 리스트를 순회하며, 남은 예산이 소진될 때까지 각 채무의 잔액을 0까지 차례대로 상환 처리하는 배분 로직을 작성합니다.",
+            "status": "done",
+            "testStrategy": "3개 이상의 채무가 있을 때 1순위 채무가 완전히 상환된 후 즉시 2순위 채무로 남은 예산이 이월되어 배분되는지 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "월별 시뮬레이션 반복 및 결과 집계 메인 엔진 구현",
+            "description": "모든 채무가 상환될 때까지 월별 상태 변화를 추적하고 MonthlyPlan 배열을 생성하는 메인 엔진을 구현합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "모든 채무의 잔액 합계가 0이 될 때까지 월별 루프를 수행합니다. 무한 루프를 방지하기 위해 최대 600개월(50년) 제한을 두며, 각 월의 상환 내역을 MonthlyPlan 형식으로 저장하여 반환합니다.",
+            "status": "done",
+            "testStrategy": "간단한 채무 시나리오를 입력하여 최종 결과 배열의 마지막 요소에서 모든 채무 잔액이 0원인지 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "시뮬레이션 엔진 단위 테스트 및 정밀도 검증",
+            "description": "엔진의 결정론적 결과를 보장하기 위해 다양한 시나리오에 대한 통합 단위 테스트를 작성합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "src/lib/repayment/engine.test.ts 파일을 생성하고 Vitest를 사용하여 단일 채무, 다중 채무, 예산 부족 상황 등에 대해 수동 계산 결과와 엔진 반환값이 일치하는지 정밀하게 검증합니다.",
+            "status": "done",
+            "testStrategy": "고정된 입력값에 대해 상환 완료 개월 수와 총 이자 비용이 예상 수치와 소수점 오차 없이 일치하는지 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Avalanche 및 Snowball 전략 정렬 로직 구현",
+        "description": "두 가지 상환 전략(고금리 우선, 소액 잔액 우선)에 따른 채무 정렬 및 실행 로직을 구현합니다.",
+        "details": "src/lib/repayment/strategies.ts에서 전략별 우선순위 큐를 생성합니다. Avalanche는 연이율 내림차순, Snowball은 잔액 오름차순으로 정렬한 뒤 Task 3에서 만든 엔진에 전달하여 시뮬레이션을 실행하는 래퍼 함수를 완성합니다.",
+        "testStrategy": "동일한 채무 목록에 대해 두 전략이 서로 다른 상환 순서와 총 이자 비용을 산출하는지 확인하는 비교 테스트를 수행합니다.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Avalanche 전략용 정렬 유틸리티 함수 구현",
+            "description": "연이율(interestRate)을 기준으로 채무 리스트를 내림차순 정렬하는 독립적인 유틸리티 함수를 구현합니다.",
+            "dependencies": [],
+            "details": "src/lib/repayment/strategies.ts 파일 내에 구현하며, Debt 객체 배열을 받아 금리가 가장 높은 채무가 배열의 맨 앞에 오도록 정렬합니다. 금리가 동일할 경우 잔액이 큰 순서대로 정렬하도록 예외 처리를 포함합니다.",
+            "status": "done",
+            "testStrategy": "Vitest를 사용하여 다양한 금리의 채무 리스트를 입력했을 때 내림차순으로 올바르게 정렬되는지 확인하는 단위 테스트를 수행합니다."
+          },
+          {
+            "id": 2,
+            "title": "Snowball 전략용 정렬 유틸리티 함수 구현",
+            "description": "현재 잔액(currentBalance)을 기준으로 채무 리스트를 오름차순 정렬하는 독립적인 유틸리티 함수를 구현합니다.",
+            "dependencies": [],
+            "details": "src/lib/repayment/strategies.ts 파일 내에 구현하며, 잔액이 가장 작은 채무부터 상환하여 심리적 성취감을 주는 전략을 지원합니다. 잔액이 동일할 경우 금리가 높은 순으로 정렬하는 로직을 추가합니다.",
+            "status": "done",
+            "testStrategy": "다양한 잔액을 가진 채무 리스트를 입력하여 오름차순 정렬 여부와 동일 잔액 시 금리 우선순위가 작동하는지 테스트합니다."
+          },
+          {
+            "id": 3,
+            "title": "시뮬레이션 엔진 연동 및 전략 실행 래퍼 구현",
+            "description": "Task 3에서 개발된 시뮬레이션 엔진을 호출하여 전략별 결과를 도출하는 통합 래퍼 함수를 작성합니다.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "runStrategySimulation 함수를 구현하여 strategyType('Avalanche' | 'Snowball')에 따라 상위 정렬 로직을 선택 실행하고, 정렬된 리스트를 엔진에 전달하여 시뮬레이션을 수행합니다.",
+            "status": "pending",
+            "testStrategy": "Mock 엔진을 사용하여 선택된 전략에 맞는 정렬된 데이터가 엔진으로 전달되는지 spyOn을 통해 검증합니다."
+          },
+          {
+            "id": 4,
+            "title": "전략별 핵심 지표(StrategyResult) 추출 로직 구현",
+            "description": "엔진의 실행 결과인 월별 계획 데이터에서 총 이자, 완납 개월 수 등 요약 지표를 산출합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "엔진이 반환한 MonthlyPlan 배열을 순회하며 누적 이자액을 계산하고, 마지막 상환 시점의 날짜를 계산하여 StrategyResult 인터페이스 형식에 맞춰 반환합니다.",
+            "status": "done",
+            "testStrategy": "샘플 시뮬레이션 결과를 입력값으로 넣어 계산된 총 이자와 완납 개월 수가 산술적으로 정확한지 검증합니다."
+          },
+          {
+            "id": 5,
+            "title": "전략 비교 통합 테스트 코드 작성",
+            "description": "동일한 입력값에 대해 Avalanche와 Snowball 전략의 상환 순서 및 총 비용 차이를 검증하는 테스트를 수행합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "복수의 채무 시나리오를 설정하고, Avalanche가 이론적으로 총 이자 비용이 더 적게 발생하는지, Snowball은 초기 상환 완료 채무가 더 빨리 발생하는지 확인하는 시나리오 테스트를 작성합니다.",
+            "status": "pending",
+            "testStrategy": "Vitest를 사용하여 두 전략의 리턴값을 비교하고 기대되는 비즈니스 로직(비용 절감 vs 상환 속도)이 일치하는지 assert 문으로 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "채무 등록 및 관리 UI 개발",
+        "description": "사용자가 채무를 추가, 수정, 삭제할 수 있는 입력 폼과 목록 화면을 개발합니다.",
+        "details": "Next.js App Router 환경에서 react-hook-form과 Task 2의 Zod 스키마를 연동합니다. 채무명, 잔액, 이율 등을 입력받는 폼을 구현하고, 입력된 데이터는 상태 관리(또는 임시 LocalStorage)를 통해 목록 테이블에 표시합니다.",
+        "testStrategy": "사용자가 폼에 값을 입력하고 '추가' 버튼을 눌렀을 때 목록에 즉시 반영되는지, 유효하지 않은 값 입력 시 에러 메시지가 노출되는지 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "채무 데이터 스키마 확인 및 타입 정의",
+            "description": "Task 2에서 정의된 Zod 스키마를 UI 구현에 맞게 조정하고 TypeScript 타입을 정의합니다.",
+            "dependencies": [],
+            "details": "src/schemas/debt.ts(예상 경로)의 스키마를 확인하여 Debt, DebtInput 타입을 정의하고 폼 유효성 검사를 위한 기반을 마련합니다.",
+            "status": "pending",
+            "testStrategy": "정의된 타입이 Zod 스키마와 일치하는지 확인하고 폼 데이터 객체의 유효성을 코드로 검증합니다."
+          },
+          {
+            "id": 2,
+            "title": "react-hook-form을 이용한 채무 입력 폼 개발",
+            "description": "채무명, 총 잔액, 연 이자율, 최소 상환액을 입력받는 폼 컴포넌트를 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "react-hook-form과 @hookform/resolvers/zod를 연동하여 입력값 유효성 검사를 수행하고 에러 메시지를 사용자에게 노출합니다.",
+            "status": "pending",
+            "testStrategy": "비어있는 값이나 잘못된 형식(예: 음수 이율) 입력 시 적절한 경고 메시지가 출력되는지 확인합니다."
+          },
+          {
+            "id": 3,
+            "title": "채무 데이터 상태 관리 커스텀 훅 구현",
+            "description": "채무 목록의 CRUD(추가, 조회, 수정, 삭제)를 담당하는 useDebtStore 또는 useDebts 훅을 개발합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "상태 관리 라이브러리(Zustand 등) 또는 React Context를 사용하여 채무 목록 배열을 전역적으로 관리하고 변경 함수를 제공합니다.",
+            "status": "pending",
+            "testStrategy": "단위 테스트를 통해 추가된 채무가 배열에 올바르게 포함되고 삭제 시 해당 항목이 제거되는지 검증합니다."
+          },
+          {
+            "id": 4,
+            "title": "채무 목록 테이블 UI 구현",
+            "description": "등록된 채무 데이터들을 리스트 형태로 보여주는 테이블과 관리 버튼을 구현합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "데이터 그리드 또는 테이블 UI를 사용하여 채무 정보를 표시하고, 각 행에 수정 및 삭제를 수행할 수 있는 액션 버튼을 배치합니다.",
+            "status": "done",
+            "testStrategy": "여러 개의 채무 데이터를 넣었을 때 테이블에 정확히 렌더링되는지, 삭제 버튼 클릭 시 상태가 업데이트되는지 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "입력 폼-목록 연동 및 LocalStorage 영속화",
+            "description": "폼 제출 시 목록에 즉시 반영하고 브라우저 재접속 시에도 데이터가 유지되도록 로컬 스토리지를 연동합니다.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "제출 이벤트 발생 시 상태 업데이트 함수를 호출하고, useEffect를 통해 로컬 스토리지와 동기화하는 로직을 최종 구현합니다.",
+            "status": "done",
+            "testStrategy": "데이터 입력 후 브라우저를 새로고침했을 때 입력했던 채무 목록이 그대로 유지되는지 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "월 상환 가능 금액 설정 UI 구현",
+        "description": "사용자의 월 예산과 추가 상환액을 입력받아 시뮬레이션 시나리오를 구성하는 UI를 개발합니다.",
+        "details": "사용자가 현재 매달 낼 수 있는 총액을 입력하는 섹션을 구현합니다. 이 금액은 Task 5에서 등록된 채무들의 최소 납입액 합계보다 커야 시뮬레이션이 활성화되도록 제어합니다.",
+        "testStrategy": "예산 입력값에 따라 시뮬레이션 실행 버튼의 활성/비활성 상태가 올바르게 전환되는지 테스트합니다.",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "월 상환 가능 금액 입력 필드 컴포넌트 개발",
+            "description": "사용자가 매달 상환에 사용할 수 있는 총 예산을 입력할 수 있는 폼 컴포넌트를 구현합니다.",
+            "dependencies": [],
+            "details": "React와 Tailwind CSS를 사용하여 숫자 전용 입력 필드를 만듭니다. 천 단위 구분자(,) 표시 기능과 화폐 단위 '원'을 접미사로 추가하여 가독성을 높입니다.",
+            "status": "done",
+            "testStrategy": "숫자 외의 문자 입력이 차단되는지 확인하고, 숫자를 입력할 때 실시간으로 천 단위 콤마가 찍히는지 테스트합니다."
+          },
+          {
+            "id": 2,
+            "title": "채무 목록 연동 및 총 최소 납입액 합산 로직 구현",
+            "description": "Task 5에서 등록된 모든 채무의 최소 납입액(minimumPayment)을 합산하는 계산 로직을 작성합니다.",
+            "dependencies": [],
+            "details": "Zustand 또는 Context API로 관리되는 채무 배열에서 각 항목의 최소 납입액 필드를 추출하여 합계를 구하는 useMemo 훅이나 Selector 함수를 구현합니다.",
+            "status": "done",
+            "testStrategy": "채무 목록에 데이터가 추가되거나 변경될 때마다 총 최소 납입액 합계가 정확하게 재계산되는지 확인합니다."
+          },
+          {
+            "id": 3,
+            "title": "Zod 스키마 기반 실시간 입력 유효성 검증 적용",
+            "description": "Task 2에서 정의한 검증 스키마를 사용하여 입력된 예산이 총 최소 납입액 합계보다 큰지 검사합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "react-hook-form의 resolver와 Task 2의 Zod 스키마를 연동합니다. '입력값 < 최소 납입액 합계'인 경우 사용자에게 즉각적인 에러 피드백을 제공합니다.",
+            "status": "pending",
+            "testStrategy": "총 최소 납입액보다 낮은 금액을 입력했을 때 '예산이 최소 납입액보다 적습니다'라는 경고 메시지가 표시되는지 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "시뮬레이션 실행 버튼 활성화 상태 제어 로직 구현",
+            "description": "유효성 검사 결과에 따라 시뮬레이션 시작 버튼을 활성화 또는 비활성화 처리합니다.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "입력값이 유효하고(Valid) 총 최소 납입액 합계보다 큰 경우에만 시뮬레이션 실행 버튼의 disabled 속성을 해제하는 상태 제어 로직을 작성합니다.",
+            "status": "done",
+            "testStrategy": "예산 입력값의 변화에 따라 버튼의 색상과 클릭 가능 여부가 실시간으로 바뀌는지 테스트합니다."
+          },
+          {
+            "id": 5,
+            "title": "설정 UI 레이아웃 통합 및 접근성 개선",
+            "description": "예산 설정 섹션을 메인 페이지 레이아웃에 배치하고 웹 접근성(ARIA) 속성을 보강합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "반응형 디자인을 적용하여 모바일에서도 입력이 용이하도록 하고, 스크린 리더 사용자를 위해 input 필드에 적절한 aria-label과 에러 메시지 연결(aria-describedby)을 설정합니다.",
+            "status": "done",
+            "testStrategy": "브라우저 크기를 조절하여 레이아웃을 확인하고, 키보드 탭(Tab) 키로 입력창과 버튼 간 이동이 자연스러운지 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "전략별 핵심 지표 비교 대시보드 구현",
+        "description": "Avalanche와 Snowball 전략의 시뮬레이션 결과를 요약하여 비교 제공하는 카드를 구현합니다.",
+        "details": "두 전략의 결과(총 이자, 완납 개월 수, 예상 완납일)를 나란히 배치하여 시각적 차이를 강조합니다. 비용 절감(Avalanche)과 심리적 성취(Snowball) 관점의 간단한 추천 문구를 포함합니다.",
+        "testStrategy": "계산 엔진에서 도출된 결과 데이터가 UI 카드에 정확하게 매핑되어 표시되는지 검증합니다.",
+        "priority": "high",
+        "dependencies": [
+          4,
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "비교 대시보드 공통 UI 레이아웃 구현",
+            "description": "Avalanche와 Snowball 전략의 결과를 나란히 비교할 수 있는 카드 기반 레이아웃을 작성합니다.",
+            "dependencies": [],
+            "details": "React와 Tailwind CSS를 사용하여 두 전략의 지표를 좌우(Desktop) 또는 상하(Mobile)로 배치할 수 있는 Grid/Flex 컨테이너 구조를 설계합니다.",
+            "status": "done",
+            "testStrategy": "Storybook 또는 개발용 페이지에서 더미 데이터를 사용하여 반응형 레이아웃이 깨지지 않고 올바르게 표시되는지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "전략별 핵심 지표 데이터 매핑 로직 개발",
+            "description": "시뮬레이션 엔진에서 도출된 데이터를 UI 표시용 객체로 변환하는 함수를 작성합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "src/types/repayment.ts의 StrategyResult 타입을 기반으로 총 이자, 완납 개월 수, 예상 완납일을 추출하고 화폐 및 날짜 포맷팅(Intl.NumberFormat 등)을 적용합니다.",
+            "status": "done",
+            "testStrategy": "다양한 시뮬레이션 결과값에 대해 포맷팅 함수가 원화(KRW) 및 날짜 형식을 정확하게 반환하는지 유닛 테스트를 수행합니다."
+          },
+          {
+            "id": 3,
+            "title": "상대적 우위 지표 강조 및 시각화 구현",
+            "description": "두 전략 중 더 유리한 수치(적은 이자, 빠른 날짜 등)를 자동으로 판별하여 강조 효과를 부여합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "두 전략의 수치를 비교하여 '최저 이자' 또는 '최단 기간'에 해당하는 지표에 강조 색상(예: Green)과 배지(Badge)를 추가하는 로직을 구현합니다.",
+            "status": "pending",
+            "testStrategy": "Avalanche가 이자가 낮을 때와 Snowball이 기간이 짧을 때 각각 올바른 위치에 하이라이트가 적용되는지 시각적으로 검증합니다."
+          },
+          {
+            "id": 4,
+            "title": "전략별 특성 기반 추천 메시지 컴포넌트 추가",
+            "description": "비용 절감과 심리적 동기부여 관점에서 각 전략의 장점을 설명하는 텍스트를 추가합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "Avalanche에는 '수학적으로 가장 저렴한 비용' 문구를, Snowball에는 '작은 성공을 통한 심리적 동기부여' 등의 추천 문구를 각 카드 하단에 배치합니다.",
+            "status": "pending",
+            "testStrategy": "문구의 오타를 점검하고, 각 전략의 고유한 특성이 사용자에게 명확하게 전달되는지 가독성을 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "시뮬레이션 결과 페이지 연동 및 예외 처리",
+            "description": "실제 시뮬레이션 실행 결과 상태를 대시보드에 연결하고 데이터 부재 시의 처리를 구현합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "메인 시뮬레이션 결과 섹션에 대시보드를 삽입하고, 계산이 완료되기 전이나 결과가 없는 경우 'Empty State'를 노출하도록 처리합니다.",
+            "status": "pending",
+            "testStrategy": "실제 채무 데이터를 입력하고 시뮬레이션 버튼을 클릭했을 때, 대시보드가 결과 데이터를 즉시 반영하여 업데이트되는지 통합 테스트를 수행합니다."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "월별 상세 상환 계획표 렌더링",
+        "description": "선택한 전략에 따른 월별 납입 액션 플랜을 테이블 형태로 제공합니다.",
+        "details": "시뮬레이션 엔진이 반환한 MonthlyPlan[] 데이터를 활용하여 월별/채무별 원금, 이자, 잔액 변화를 보여주는 테이블을 구현합니다. 모바일 대응을 위해 가로 스크롤 또는 리스트 형태의 전환을 고려합니다.",
+        "testStrategy": "표의 마지막 행에서 모든 채무의 잔액이 0원이 되는지, 월별 납입 합계가 예산을 초과하지 않는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "상환 계획표 기본 레이아웃 및 컴포넌트 구조 정의",
+            "description": "MonthlyPlan[] 데이터를 시각화하기 위한 기본 테이블 구조와 컴포넌트 파일을 생성합니다.",
+            "dependencies": [],
+            "details": "src/components/repayment/RepaymentPlanTable.tsx 파일을 생성하고, shadcn/ui의 Table 컴포넌트를 활용하여 기본 골격을 구축합니다. Props로 MonthlyPlan[] 배열을 전달받도록 설계합니다.",
+            "status": "done",
+            "testStrategy": "임시 데이터를 전달했을 때 테이블의 헤더와 빈 행들이 오류 없이 렌더링되는지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "채무별 동적 컬럼 생성 및 데이터 매핑 로직 구현",
+            "description": "사용자가 입력한 채무 목록에 따라 테이블의 열(Column)을 동적으로 구성하고 데이터를 매핑합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "MonthlyPlan 데이터 내의 debtDetails 맵을 분석하여 각 채무별 '원금', '이자', '잔액' 컬럼을 생성합니다. 배열 메서드를 사용하여 월별 데이터를 행(Row) 단위로 정확하게 매핑합니다.",
+            "status": "pending",
+            "testStrategy": "각 행의 채무별 원금 상환액과 이자액의 합계가 해당 월의 총 납입액과 일치하는지 유닛 테스트를 통해 검증합니다."
+          },
+          {
+            "id": 3,
+            "title": "반응형 디자인 적용 및 가로 스크롤/Sticky 열 구현",
+            "description": "모바일 기기에서도 계획표를 원활하게 볼 수 있도록 가로 스크롤과 주요 열 고정 기능을 추가합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "Tailwind CSS의 overflow-x-auto 속성을 사용하여 가로 스크롤을 구현하고, '회차(월)' 열을 sticky 클래스로 좌측에 고정하여 데이터 식별을 용이하게 합니다.",
+            "status": "done",
+            "testStrategy": "모바일 브라우저 환경에서 테이블이 레이아웃을 깨뜨리지 않고 가로 스크롤이 정상 작동하는지 UI 테스트를 수행합니다."
+          },
+          {
+            "id": 4,
+            "title": "상환 완료 시점 시각적 강조 및 요약 정보 행 추가",
+            "description": "각 채무의 상환이 완료되는 시점을 시각적으로 강조하고 테이블 하단에 총계를 표시합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "채무 잔액이 0이 되는 셀에 배지(Badge)나 배경색을 적용하여 강조합니다. 테이블 최하단에는 총 납입 이자 및 총 상환 기간을 요약하는 Footer 행을 추가합니다.",
+            "status": "pending",
+            "testStrategy": "시뮬레이션 결과에 따라 마지막 행의 모든 채무 잔액이 0으로 표시되는지, 총계 데이터가 정확한지 육안 및 로직 확인을 수행합니다."
+          },
+          {
+            "id": 5,
+            "title": "전략 결과 데이터 연동 및 최종 통합 검증",
+            "description": "시뮬레이션 엔진에서 계산된 실제 결과 데이터를 테이블에 연동하고 비즈니스 규칙 준수 여부를 확인합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "계산 엔진(Task 7)의 출력값을 실제 UI에 연결합니다. 월별 납입 합계가 설정된 예산을 초과하지 않는지, 이율 계산이 정확하게 반영되어 잔액이 줄어드는지 최종 검증합니다.",
+            "status": "done",
+            "testStrategy": "다양한 채무 시나리오를 입력하여 마지막 회차에서 잔액이 0이 되는지, 예산 범위 내에서 계획이 수립되었는지 E2E 테스트를 수행합니다."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "전역 오류 처리 및 UX 예외 시나리오 보강",
+        "description": "계산 실패, 예산 부족, 데이터 유실 등의 상황에 대한 안내와 복구 UX를 강화합니다.",
+        "details": "에러 경계(Error Boundary)를 설정하고, 계산 불가능한 시나리오 입력 시 사용자에게 명확한 이유(예: '이율이 너무 높아 최소 납입액만으로는 원금이 줄지 않습니다')를 설명하는 모달이나 알림을 추가합니다.",
+        "testStrategy": "극단적인 입력값(매우 높은 이율, 매우 적은 예산)을 넣어 앱이 크래시되지 않고 적절한 안내를 제공하는지 테스트합니다.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          8
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "React Error Boundary 컴포넌트 구현",
+            "description": "애플리케이션의 런타임 에러를 포착하고 사용자에게 친절한 폴백 UI를 보여주는 Error Boundary를 구현합니다.",
+            "dependencies": [],
+            "details": "react-error-boundary 라이브러리 또는 커스텀 클래스 컴포넌트를 사용하여 src/components/common/ErrorBoundary.tsx를 작성합니다. 전역 에러뿐만 아니라 특정 섹션(예: 계산기 영역)만 감싸는 기능을 제공합니다.",
+            "status": "pending",
+            "testStrategy": "의도적으로 렌더링 에러를 발생시키는 컴포넌트를 생성하여 Error Boundary가 폴백 UI를 정상적으로 렌더링하는지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "전역 알림(Toast) 시스템 구축",
+            "description": "비정상적인 입력값이나 계산 실패 시 사용자에게 즉각적인 피드백을 주기 위한 알림 시스템을 도입합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "React-hot-toast 또는 Sonner와 같은 라이브러리를 설정하거나 커스텀 Context API 기반의 토스트 시스템을 구축합니다. 성공, 경고, 에러 타입별로 스타일을 정의합니다.",
+            "status": "pending",
+            "testStrategy": "버튼 클릭 시 다양한 타입의 알림 메시지가 화면에 나타나고 일정 시간 후 사라지는지 테스트합니다."
+          },
+          {
+            "id": 3,
+            "title": "상환 불가능 시나리오 감지 로직 구현",
+            "description": "이율이 너무 높아 최소 납입액만으로 원금이 줄어들지 않는 '상환 불능' 상태를 감지하는 로직을 추가합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "src/utils/calculator.ts 내에 채무별 월 이자가 최소 납입액보다 큰 경우를 체크하는 IsRepayable 함수를 작성합니다. 이 경우 계산을 중단하고 예외를 발생시킵니다.",
+            "status": "done",
+            "testStrategy": "이율 50%, 최소 납입액이 매우 적은 극단적 데이터를 입력하여 엔진이 상환 불가능 상태를 정확히 감지하는지 단위 테스트를 수행합니다."
+          },
+          {
+            "id": 4,
+            "title": "예외 시나리오 전용 설명 모달 UI 구현",
+            "description": "계산 실패나 예산 부족 시 사용자에게 구체적인 이유와 해결책을 제시하는 안내 모달을 구현합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "단순 경고를 넘어 '이율을 조정하거나 월 예산을 00원 이상으로 늘려야 합니다'와 같은 구체적인 가이드를 포함하는 모달 컴포넌트를 src/components/common/ErrorModal.tsx에 작성합니다.",
+            "status": "pending",
+            "testStrategy": "예산 부족 상황을 재현하여 모달이 뜨는지 확인하고, 모달 내의 가이드 텍스트가 현재 입력값에 기반해 동적으로 변하는지 검증합니다."
+          },
+          {
+            "id": 5,
+            "title": "에러 복구 및 상태 리셋 기능 추가",
+            "description": "에러 발생 시 사용자가 데이터를 잃지 않고 다시 시도하거나 입력값을 초기화할 수 있는 복구 UX를 강화합니다.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Error Boundary의 Reset 기능을 활용하여 에러 발생 시 '다시 시도' 버튼을 제공하고, 상태 관리 도구(Zustand 등)의 초기화 함수를 연결하여 안전한 복구를 지원합니다.",
+            "status": "pending",
+            "testStrategy": "에러 폴백 화면에서 '다시 시도' 버튼을 클릭했을 때 앱이 정상 상태로 복구되고 에러 로그가 클리어되는지 확인합니다."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "LocalStorage 기반 데이터 영속화 및 최종 통합 테스트",
+        "description": "사용자가 입력한 채무 정보를 브라우저에 저장하고 전체 서비스 흐름을 검증합니다.",
+        "details": "새로고침 시에도 데이터가 유지되도록 LocalStorage 저장 로직을 추가합니다. 프로젝트 전체 시나리오(채무 입력 -> 예산 설정 -> 전략 비교 -> 계획표 확인)에 대해 Playwright를 이용한 E2E 테스트를 수행합니다.",
+        "testStrategy": "브라우저를 새로고침한 후에도 이전 입력 데이터가 남아있는지 확인하고, 전체 사용자 플로우가 PRD 요구사항을 충족하는지 최종 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "LocalStorage 영속화 커스텀 훅(useLocalStorage) 구현",
+            "description": "채무 데이터와 사용자 설정을 브라우저 LocalStorage와 동기화하는 재사용 가능한 React Hook을 작성합니다.",
+            "dependencies": [],
+            "details": "src/hooks/useLocalStorage.ts 파일을 생성합니다. JSON stringify/parse 시의 예외 처리를 포함하고, SSR 환경을 고려하여 window 객체 존재 여부를 체크하는 로직을 구현합니다.",
+            "status": "pending",
+            "testStrategy": "Vitest를 사용하여 문자열, 숫자, 객체 등 다양한 데이터 타입이 LocalStorage에 올바르게 저장되고 다시 로드되는지 단위 테스트를 수행합니다."
+          },
+          {
+            "id": 2,
+            "title": "채무 목록 및 예산 설정 데이터 영속화 적용",
+            "description": "사용자가 입력한 채무 리스트와 월간 예산 데이터를 LocalStorage에 실시간으로 저장하고 로드하도록 연동합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "Task 5에서 구현된 채무 관리 상태(State)를 useLocalStorage 훅으로 교체합니다. 사용자가 값을 수정할 때마다 자동으로 브라우저에 저장되어 새로고침 시에도 기존 상태가 유지되도록 합니다.",
+            "status": "done",
+            "testStrategy": "브라우저 개발자 도구의 Application 탭에서 데이터가 실시간으로 반영되는지 확인하고, F5 키를 눌러 새로고침한 후에도 입력 폼과 테이블 데이터가 유지되는지 검증합니다."
+          },
+          {
+            "id": 3,
+            "title": "Playwright E2E 테스트 환경 구축 및 기본 시나리오 정의",
+            "description": "전체 서비스 흐름을 자동화 테스트하기 위해 Playwright를 설정하고 통합 테스트 코드를 작성합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "playwright.config.ts를 설정하고 tests/e2e/full-flow.spec.ts 파일을 생성합니다. 메인 시나리오(채무 입력 -> 예산 설정 -> 전략 선택 -> 계획표 확인)의 각 단계별 셀렉터와 기대 동작을 정의합니다.",
+            "status": "pending",
+            "testStrategy": "npx playwright test 명령을 실행하여 브라우저 자동화가 정상적으로 시작되고 각 페이지 요소에 접근 가능한지 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "전체 사용자 플로우 통합 테스트 수행",
+            "description": "채무 입력부터 상환 계획표 출력까지의 PRD 핵심 요구사항을 포함한 전체 플로우를 검증합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "다양한 채무 데이터(이자율 차이, 금액 차이)를 입력했을 때 스노우볼과 스택 전략의 결과 차이가 올바르게 계산되어 UI에 표시되는지, 최종 계획표가 월별로 정확히 나열되는지 확인하는 스크립트를 완성합니다.",
+            "status": "pending",
+            "testStrategy": "Playwright의 Trace Viewer를 활용하여 각 단계별 스크린샷과 상태를 점검하고, 모든 테스트 케이스가 Pass하는지 최종 확인합니다."
+          },
+          {
+            "id": 5,
+            "title": "데이터 초기화 및 예외 시나리오 통합 검증",
+            "description": "데이터 삭제 기능 및 예기치 않은 사용자 동작에 대한 복구 로직을 최종 점검합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "모든 채무 데이터를 삭제했을 때 LocalStorage가 비워지는지, 잘못된 경로 진입 시 홈으로 리다이렉션되는지 등 Task 9에서 보강한 예외 처리 로직을 통합 테스트 범위에 포함합니다.",
+            "status": "pending",
+            "testStrategy": "LocalStorage를 강제로 삭제하거나 비정상적인 데이터를 주입했을 때 앱이 크래시되지 않고 적절한 오류 안내를 노출하는지 E2E 테스트를 통해 검증합니다."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2026-02-11T10:54:42.603Z",
+      "updated": "2026-02-11T10:54:42.603Z",
+      "description": "Tasks for master context"
     }
-  ]
+  }
 }
