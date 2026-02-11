@@ -69,7 +69,7 @@ function HomePageContent() {
     if (storedDebts.length > 0) {
     setDebts(storedDebts);
   }
-  }, [loadDebts]);
+  }, [loadDebts, setDebts]);
 
   useEffect(() => {
     const storedBudgetConfig = loadBudgetConfig();
@@ -217,13 +217,13 @@ function HomePageContent() {
     }
 
     removeDebt(debtPendingDeletion.id);
-    if (editingId === debtPendingDeletion.id) {
-      resetForm();
-    }
+    setEditingId((previous) =>
+      previous === debtPendingDeletion.id ? null : previous,
+    );
 
     setDebtPendingDeletion(null);
     setDeleteTriggerButton(null);
-  }, [debtPendingDeletion, editingId, removeDebt, resetForm]);
+  }, [debtPendingDeletion, removeDebt]);
 
   const handleAddDebt = useCallback(() => {
     resetForm();
