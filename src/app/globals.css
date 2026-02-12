@@ -271,6 +271,7 @@ button.danger {
 
 .strategy-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 16px 0 10px;
 }
@@ -553,12 +554,6 @@ th {
 }
 
 @media (max-width: 900px) {
-  .form-grid,
-  .budget-grid,
-  .result-cards {
-    grid-template-columns: 1fr;
-  }
-
   .debt-empty-state {
     flex-direction: column;
     align-items: stretch;
@@ -570,5 +565,75 @@ th {
 
   .debt-cards-mobile {
     display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  .result-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 24px 16px 40px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .form-grid,
+  .budget-grid {
+    grid-template-columns: 1fr;
+  }
+
+  input,
+  select,
+  button {
+    padding: 12px 14px;
+    font-size: 1rem; /* Prevent zoom on iOS */
+  }
+
+  button.small {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .help-tooltip-trigger {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    font-size: 0.9rem;
+  }
+
+  .help-tooltip-content {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    top: auto;
+    width: auto;
+    transform: none;
+    z-index: 2000;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+    text-align: left;
+  }
+
+  .help-tooltip-content::before {
+    display: none;
+  }
+
+  .toast-stack {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+  }
+
+  .toast-item {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
   }
 }
