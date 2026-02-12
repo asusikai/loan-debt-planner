@@ -42,6 +42,7 @@ function HomePageContent() {
   const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [extraPayment, setExtraPayment] = useState("");
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
     "avalanche",
@@ -116,7 +117,7 @@ function HomePageContent() {
   );
 
   const formInitialValues = useMemo<DebtFormValues>(() => {
-    if (!editingDebt) {
+    if (formMode !== "edit" || !editingDebt) {
       return emptyForm;
     }
 
@@ -131,10 +132,11 @@ function HomePageContent() {
           ? (editingDebt.prepaymentFeeRate * 100).toFixed(2)
           : "",
     };
-  }, [editingDebt]);
+  }, [editingDebt, formMode]);
 
   const resetForm = useCallback(() => {
     setEditingId(null);
+    setFormMode(null);
   }, []);
 
   const handleSubmitDebt = useCallback((formValues: DebtFormValues) => {
@@ -201,6 +203,7 @@ function HomePageContent() {
     }
 
     setEditingId(target.id);
+    setFormMode("edit");
     setErrorMessage("");
   }, [debts]);
 
@@ -220,21 +223,24 @@ function HomePageContent() {
     }
 
     removeDebt(debtPendingDeletion.id);
-    setEditingId((previous) =>
-      previous === debtPendingDeletion.id ? null : previous,
-    );
+    if (editingId === debtPendingDeletion.id) {
+      setEditingId(null);
+      setFormMode(null);
+    }
 
     setDebtPendingDeletion(null);
     setDeleteTriggerButton(null);
-  }, [debtPendingDeletion, removeDebt]);
+  }, [debtPendingDeletion, editingId, removeDebt]);
 
   const handleAddDebt = useCallback(() => {
-    resetForm();
+    setEditingId(null);
+    setFormMode("create");
     setErrorMessage("");
-  }, [resetForm]);
+  }, []);
 
   const handleResetState = useCallback(() => {
     setDebts(initialDebts);
+    setFormMode(null);
     setExtraPayment("");
     setResults(null);
     setRecommendation(null);
@@ -308,24 +314,34 @@ function HomePageContent() {
       ) : null}
 
       <div className="layout-grid">
-        <section className="card">
-          <h2>채무 입력/수정/삭제</h2>
-          <DebtForm
-            mode={editingId ? "edit" : "create"}
-            initialValues={formInitialValues}
-            onSubmit={handleSubmitDebt}
-            onCancel={resetForm}
-          />
-
+        <section className="card debt-section-card">
+          <h2>채무 목록</h2>
           <DebtList
             debts={debts}
             onEdit={handleEditDebt}
             onDelete={requestDeleteDebt}
             onAddNew={handleAddDebt}
           />
+
+          {formMode ? (
+            <div className="debt-form-dropdown" style={{ marginTop: 16 }}>
+              <div className="debt-form-dropdown-header">
+                <h3>{formMode === "edit" ? "채무 수정" : "채무 추가"}</h3>
+                <button type="button" className="ghost small" onClick={resetForm}>
+                  닫기
+                </button>
+              </div>
+              <DebtForm
+                mode={formMode}
+                initialValues={formInitialValues}
+                onSubmit={handleSubmitDebt}
+                onCancel={resetForm}
+              />
+            </div>
+          ) : null}
         </section>
 
-        <section className="card">
+        <section className="card strategy-section-card">
           <h2>전략 결과</h2>
           <BudgetForm
             extraPayment={extraPayment}

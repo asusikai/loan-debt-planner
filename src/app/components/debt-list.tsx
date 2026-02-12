@@ -55,6 +55,13 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
 
   return (
     <>
+      <div className="debt-list-actions" style={{ marginTop: 16 }}>
+        {onAddNew ? (
+          <button type="button" onClick={onAddNew}>
+            채무 추가
+          </button>
+        ) : null}
+      </div>
       <div className="table-wrap debt-table-desktop" style={{ marginTop: 16 }}>
         <table>
           <thead>

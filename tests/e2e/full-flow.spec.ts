@@ -11,6 +11,7 @@ test("기본 사용자 플로우 진입 확인", async ({ page }) => {
 test("채무 입력/추가상환 설정 후 전략 결과 렌더링", async ({ page }) => {
   await page.goto("/");
 
+  await page.getByRole("button", { name: "채무 추가" }).click();
   await page.getByLabel(/채무명 \*/).fill("신용대출A");
   await page.getByLabel(/잔액\(원\) \*/).fill("5000000");
   await page.getByLabel(/연이율\(%\) \*/).fill("8.2");
@@ -27,6 +28,7 @@ test("채무 입력/추가상환 설정 후 전략 결과 렌더링", async ({ p
 test("상태 초기화 버튼으로 입력 상태 복구", async ({ page }) => {
   await page.goto("/");
 
+  await page.getByRole("button", { name: "채무 추가" }).click();
   await page.getByLabel(/채무명 \*/).fill("신용대출A");
   await page.getByLabel(/잔액\(원\) \*/).fill("5000000");
   await page.getByLabel(/연이율\(%\) \*/).fill("8.2");
