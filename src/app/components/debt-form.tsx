@@ -6,12 +6,13 @@ import {
   type DebtFormErrors,
   type DebtFormField,
 } from "@/lib/validation/debt-form-schema";
+import type { RepaymentType } from "@/types/repayment";
 
 export type DebtFormValues = {
   name: string;
   balance: string;
   annualRatePercent: string;
-  minimumPayment: string;
+  repaymentType: RepaymentType;
   maturityMonths: string;
   prepaymentFeeRatePercent: string;
 };
@@ -28,7 +29,7 @@ function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
     left.name === right.name &&
     left.balance === right.balance &&
     left.annualRatePercent === right.annualRatePercent &&
-    left.minimumPayment === right.minimumPayment &&
+    left.repaymentType === right.repaymentType &&
     left.maturityMonths === right.maturityMonths &&
     left.prepaymentFeeRatePercent === right.prepaymentFeeRatePercent
   );
@@ -162,27 +163,29 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
           </p>
         ) : null}
       </label>
-      <label htmlFor="debt-minimum-payment">
-        최소납입액(원) *
-        <input
-          id="debt-minimum-payment"
-          type="number"
-          value={values.minimumPayment}
-          onChange={(event) => updateField("minimumPayment", event.target.value)}
-          onBlur={() => markTouched("minimumPayment")}
-          placeholder="200000"
-          aria-invalid={Boolean(getFieldError("minimumPayment"))}
-          aria-describedby={getFieldError("minimumPayment") ? "debt-minimum-payment-error" : undefined}
+      <label htmlFor="debt-repayment-type">
+        상환 방식 *
+        <select
+          id="debt-repayment-type"
+          value={values.repaymentType}
+          onChange={(event) => updateField("repaymentType", event.target.value as RepaymentType)}
+          onBlur={() => markTouched("repaymentType")}
+          aria-invalid={Boolean(getFieldError("repaymentType"))}
+          aria-describedby={getFieldError("repaymentType") ? "debt-repayment-type-error" : undefined}
           required
-        />
-        {getFieldError("minimumPayment") ? (
-          <p id="debt-minimum-payment-error" className="field-error" role="alert">
-            {getFieldError("minimumPayment")}
+        >
+          <option value="equalInstallment">원리금균등상환</option>
+          <option value="equalPrincipal">원금균등상환</option>
+          <option value="bullet">원금만기일시상환</option>
+        </select>
+        {getFieldError("repaymentType") ? (
+          <p id="debt-repayment-type-error" className="field-error" role="alert">
+            {getFieldError("repaymentType")}
           </p>
         ) : null}
       </label>
       <label htmlFor="debt-maturity-months">
-        만기 잔여 개월 수(선택)
+        만기 잔여 개월 수(원금만기일시 선택 시 필수)
         <input
           id="debt-maturity-months"
           type="number"

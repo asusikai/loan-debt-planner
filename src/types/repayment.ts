@@ -10,9 +10,13 @@ export type DebtCore = {
   balance: number;
   /** Annual interest rate as decimal (e.g. 0.12). */
   interestRate: number;
-  /** Required minimum monthly payment in KRW. */
-  minPayment: number;
+  /** Repayment method for this debt. */
+  repaymentType: RepaymentType;
+  /** Optional remaining months to maturity. */
+  maturityMonths?: number;
 };
+
+export type RepaymentType = "bullet" | "equalPrincipal" | "equalInstallment";
 
 /**
  * Debt model used by simulation engine and UI forms.
@@ -24,8 +28,8 @@ export type Debt = {
   balance: number;
   /** Annual interest rate as decimal (e.g. 0.12). */
   annualRate: number;
-  /** Minimum required monthly payment in KRW. */
-  minimumPayment: number;
+  /** Repayment method for this debt. */
+  repaymentType: RepaymentType;
   /** Optional prepayment fee rate as decimal. */
   prepaymentFeeRate?: number;
   /** Optional prepayment fee exemption months. */

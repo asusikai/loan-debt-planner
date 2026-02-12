@@ -48,7 +48,7 @@ export function BudgetForm({
           aria-invalid={Boolean(monthlyBudgetError)}
         />
       </label>
-      <p className="muted budget-hint">최소납입 합계: {toCurrency(minimumRequired)}</p>
+      <p className="muted budget-hint">월 필수납입 합계: {toCurrency(minimumRequired)}</p>
       <label>
         추가 상환(원, 선택)
         <input

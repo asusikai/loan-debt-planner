@@ -1,5 +1,7 @@
 import type { Debt, ScenarioInput } from "@/types/repayment";
 
+import { calculateMinimumRequiredMonthlyBudget } from "@/lib/repayment/required-payment";
+
 type CreateScenarioOptions = {
   seed?: number;
   debtCount?: number;
@@ -25,6 +27,11 @@ function randomRate(rng: InternalRng): number {
   return Number((rng() * 0.25).toFixed(4));
 }
 
+function randomRepaymentType(rng: InternalRng): Debt["repaymentType"] {
+  const types: Debt["repaymentType"][] = ["equalInstallment", "equalPrincipal", "bullet"];
+  return types[randomInt(rng, 0, types.length - 1)] ?? "equalInstallment";
+}
+
 function createRandomDebt(rng: InternalRng, index: number): Debt {
   const balance = randomInt(rng, 500_000, 10_000_000);
   const maturityMonths = randomInt(rng, 3, 72);
@@ -33,7 +40,7 @@ function createRandomDebt(rng: InternalRng, index: number): Debt {
     name: `debt-${index + 1}`,
     balance,
     annualRate: randomRate(rng),
-    minimumPayment: randomInt(rng, 50_000, 400_000),
+    repaymentType: randomRepaymentType(rng),
     prepaymentFeeRate: Number((rng() * 0.03).toFixed(4)),
     feeExemptionMonths: randomInt(rng, 0, maturityMonths + 6),
     maturityMonths,
@@ -53,7 +60,7 @@ export function createDebtFactory(options: CreateScenarioOptions = {}): Debt[] {
       name: "edge-zero-rate",
       balance: 2_000_000,
       annualRate: 0,
-      minimumPayment: 120_000,
+      repaymentType: "equalInstallment",
       prepaymentFeeRate: 0.01,
       feeExemptionMonths: 18,
       maturityMonths: 12,
@@ -63,7 +70,7 @@ export function createDebtFactory(options: CreateScenarioOptions = {}): Debt[] {
       name: "edge-long-fee-window",
       balance: 1_200_000,
       annualRate: 0.089,
-      minimumPayment: 100_000,
+      repaymentType: "equalPrincipal",
       prepaymentFeeRate: 0.02,
       feeExemptionMonths: 24,
       maturityMonths: 10,
@@ -75,7 +82,7 @@ export function createDebtFactory(options: CreateScenarioOptions = {}): Debt[] {
 
 export function createScenarioFactory(options: CreateScenarioOptions = {}): ScenarioInput {
   const debts = createDebtFactory(options);
-  const minimumRequired = debts.reduce((sum, debt) => sum + debt.minimumPayment, 0);
+  const minimumRequired = calculateMinimumRequiredMonthlyBudget(debts);
 
   return {
     debts,

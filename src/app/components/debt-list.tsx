@@ -27,6 +27,18 @@ function formatMaturityMonths(value?: number): string {
   return `${value}개월`;
 }
 
+function formatRepaymentType(value: EditableDebt["repaymentType"]): string {
+  if (value === "bullet") {
+    return "원금만기일시상환";
+  }
+
+  if (value === "equalPrincipal") {
+    return "원금균등상환";
+  }
+
+  return "원리금균등상환";
+}
+
 export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
   if (debts.length === 0) {
     return (
@@ -50,7 +62,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               <th>채무명</th>
               <th>잔액</th>
               <th>연이율</th>
-              <th>최소납입액</th>
+              <th>상환 방식</th>
               <th>만기 잔여 개월</th>
               <th>중도상환수수료율</th>
               <th>액션</th>
@@ -62,7 +74,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
                 <td>{debt.name}</td>
                 <td>{formatCurrency(debt.balance)}</td>
                 <td>{formatRate(debt.annualRate)}</td>
-                <td>{formatCurrency(debt.minimumPayment)}</td>
+                <td>{formatRepaymentType(debt.repaymentType)}</td>
                 <td>{formatMaturityMonths(debt.maturityMonths)}</td>
                 <td>{formatRate(debt.prepaymentFeeRate)}</td>
                 <td>
@@ -91,7 +103,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               잔액: <strong>{formatCurrency(debt.balance)}</strong>
             </p>
             <p>연이율: {formatRate(debt.annualRate)}</p>
-            <p>최소납입액: {formatCurrency(debt.minimumPayment)}</p>
+            <p>상환 방식: {formatRepaymentType(debt.repaymentType)}</p>
             <p>만기 잔여 개월: {formatMaturityMonths(debt.maturityMonths)}</p>
             <p>중도상환수수료율: {formatRate(debt.prepaymentFeeRate)}</p>
             <div className="debt-card-actions">

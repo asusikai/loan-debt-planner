@@ -39,6 +39,8 @@ const optionalMonthsString = z
     message: "만기 잔여 개월 수는 1 이상의 정수여야 합니다.",
   });
 
+const repaymentTypeSchema = z.enum(["bullet", "equalPrincipal", "equalInstallment"]);
+
 export const debtFormSchema = z
   .object({
     name: requiredString("채무명").max(100, "채무명은 100자 이하여야 합니다."),
@@ -50,22 +52,16 @@ export const debtFormSchema = z
       const numberValue = Number(value);
       return Number.isFinite(numberValue) && numberValue >= 0 && numberValue <= 100;
     }, "연이율은 0~100 사이 값이어야 합니다."),
-    minimumPayment: requiredString("최소납입액").refine((value) => {
-      const numberValue = Number(value);
-      return Number.isInteger(numberValue) && numberValue > 0;
-    }, "최소납입액은 1 이상 정수여야 합니다."),
+    repaymentType: repaymentTypeSchema,
     maturityMonths: optionalMonthsString,
     prepaymentFeeRatePercent: optionalPercentString,
   })
   .superRefine((value, ctx) => {
-    const balance = Number(value.balance);
-    const minimumPayment = Number(value.minimumPayment);
-
-    if (Number.isFinite(balance) && Number.isFinite(minimumPayment) && minimumPayment > balance) {
+    if (value.repaymentType === "bullet" && value.maturityMonths.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["minimumPayment"],
-        message: "최소납입액은 잔액보다 클 수 없습니다.",
+        path: ["maturityMonths"],
+        message: "원금만기일시상환은 만기 잔여 개월 수가 필요합니다.",
       });
     }
   });

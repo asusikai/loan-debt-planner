@@ -15,6 +15,7 @@ import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebts } from "@/hooks/use-debts";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
+import { calculateMinimumRequiredMonthlyBudget } from "@/lib/repayment/required-payment";
 import type { EditableDebt, StrategyResult } from "@/types/repayment";
 
 const initialDebts: EditableDebt[] = [];
@@ -23,7 +24,7 @@ const emptyForm: DebtFormValues = {
   name: "",
   balance: "",
   annualRatePercent: "",
-  minimumPayment: "",
+  repaymentType: "equalInstallment",
   maturityMonths: "",
   prepaymentFeeRatePercent: "",
 };
@@ -102,7 +103,7 @@ function HomePageContent() {
   }, [debts.length, clearBudgetConfig]);
 
   const totalMinimum = useMemo(
-    () => debts.reduce((sum, debt) => sum + debt.minimumPayment, 0),
+    () => calculateMinimumRequiredMonthlyBudget(debts),
     [debts],
   );
 
@@ -127,7 +128,7 @@ function HomePageContent() {
       name: editingDebt.name,
       balance: String(editingDebt.balance),
       annualRatePercent: (editingDebt.annualRate * 100).toFixed(2),
-      minimumPayment: String(editingDebt.minimumPayment),
+      repaymentType: editingDebt.repaymentType,
       maturityMonths: editingDebt.maturityMonths !== undefined ? String(editingDebt.maturityMonths) : "",
       prepaymentFeeRatePercent:
         editingDebt.prepaymentFeeRate !== undefined
@@ -144,7 +145,7 @@ function HomePageContent() {
     const name = formValues.name.trim();
     const balance = Math.floor(toNumber(formValues.balance));
     const annualRatePercent = toNumber(formValues.annualRatePercent);
-    const minimumPayment = Math.floor(toNumber(formValues.minimumPayment));
+    const repaymentType = formValues.repaymentType;
     const maturityMonthsInput = formValues.maturityMonths.trim();
     const maturityMonths =
       maturityMonthsInput === "" ? undefined : Math.floor(toNumber(maturityMonthsInput));
@@ -160,9 +161,15 @@ function HomePageContent() {
       return;
     }
 
-    if (balance <= 0 || annualRatePercent < 0 || minimumPayment < 0) {
-      setErrorMessage("잔액은 1 이상, 금리/최소납입액은 0 이상이어야 합니다.");
-      pushToast("잔액/금리/최소납입액 입력을 확인해 주세요.", "warning");
+    if (balance <= 0 || annualRatePercent < 0) {
+      setErrorMessage("잔액은 1 이상, 금리는 0 이상이어야 합니다.");
+      pushToast("잔액/금리 입력을 확인해 주세요.", "warning");
+      return;
+    }
+
+    if (repaymentType === "bullet" && maturityMonths === undefined) {
+      setErrorMessage("원금만기일시상환은 만기 잔여 개월 수가 필요합니다.");
+      pushToast("원금만기일시상환은 만기를 입력해 주세요.", "warning");
       return;
     }
 
@@ -177,7 +184,7 @@ function HomePageContent() {
       name,
       balance,
       annualRate: annualRatePercent / 100,
-      minimumPayment,
+      repaymentType,
       maturityMonths,
       prepaymentFeeRate:
         prepaymentFeeRatePercent !== undefined
@@ -246,8 +253,8 @@ function HomePageContent() {
   const handleCalculate = useCallback(() => {
     try {
       if (!canCompareStrategies) {
-        setErrorMessage("예산이 최소납입 합계를 충족해야 결과 계산이 가능합니다.");
-        pushToast("월 예산이 최소납입 합계를 충족해야 합니다.", "warning");
+        setErrorMessage("예산이 월 필수납입 합계를 충족해야 결과 계산이 가능합니다.");
+        pushToast("월 예산이 월 필수납입 합계를 충족해야 합니다.", "warning");
         setErrorModal({
           open: true,
           title: "예산 부족",
@@ -279,7 +286,7 @@ function HomePageContent() {
     } catch (error) {
       if (error instanceof Error && error.message === "BUDGET_BELOW_MINIMUM") {
         setErrorMessage(
-          `월 상환 예산이 최소납입 합계(${toCurrency(totalMinimum)})보다 작습니다.`,
+          `월 상환 예산이 월 필수납입 합계(${toCurrency(totalMinimum)})보다 작습니다.`,
         );
         pushToast("월 상환 예산이 부족합니다.", "error");
         setErrorModal({
@@ -353,7 +360,7 @@ function HomePageContent() {
             title={
               canCompareStrategies
                 ? ""
-                : "최소납입 합계를 충족하는 예산을 입력하면 활성화됩니다"
+                : "월 필수납입 합계를 충족하는 예산을 입력하면 활성화됩니다"
             }
           >
             결과 계산

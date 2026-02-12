@@ -4,19 +4,38 @@ import type { EditableDebt } from "@/types/repayment";
 
 const STORAGE_KEY = "debtpilot_debts";
 
-function isEditableDebt(value: unknown): value is EditableDebt {
+function normalizeEditableDebt(value: unknown): EditableDebt | null {
   if (typeof value !== "object" || value === null) {
-    return false;
+    return null;
   }
 
   const debt = value as Partial<EditableDebt>;
-  return (
-    typeof debt.id === "string" &&
-    typeof debt.name === "string" &&
-    typeof debt.balance === "number" &&
-    typeof debt.annualRate === "number" &&
-    typeof debt.minimumPayment === "number"
-  );
+  if (
+    typeof debt.id !== "string" ||
+    typeof debt.name !== "string" ||
+    typeof debt.balance !== "number" ||
+    typeof debt.annualRate !== "number"
+  ) {
+    return null;
+  }
+
+  const repaymentType =
+    debt.repaymentType === "bullet" ||
+    debt.repaymentType === "equalPrincipal" ||
+    debt.repaymentType === "equalInstallment"
+      ? debt.repaymentType
+      : "equalInstallment";
+
+  return {
+    id: debt.id,
+    name: debt.name,
+    balance: debt.balance,
+    annualRate: debt.annualRate,
+    repaymentType,
+    maturityMonths: typeof debt.maturityMonths === "number" ? debt.maturityMonths : undefined,
+    prepaymentFeeRate: typeof debt.prepaymentFeeRate === "number" ? debt.prepaymentFeeRate : undefined,
+    feeExemptionMonths: typeof debt.feeExemptionMonths === "number" ? debt.feeExemptionMonths : undefined,
+  };
 }
 
 export function useDebtStorage() {
@@ -42,7 +61,9 @@ export function useDebtStorage() {
         throw new Error("invalid debt storage format");
       }
 
-      return parsed.filter(isEditableDebt);
+      return parsed
+        .map((item) => normalizeEditableDebt(item))
+        .filter((item): item is EditableDebt => item !== null);
     } catch (error) {
       console.warn("[DebtStorage] load failed", error);
       setStorageWarning("저장된 채무 데이터를 불러오지 못했습니다. 기본 상태로 시작합니다.");

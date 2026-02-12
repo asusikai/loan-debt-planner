@@ -31,7 +31,7 @@ export const budgetFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["monthlyBudget"],
-        message: "예산이 최소납입 합계보다 작습니다.",
+        message: "예산이 월 필수납입 합계보다 작습니다.",
       });
     }
   });

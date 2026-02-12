@@ -1,13 +1,23 @@
 import { z } from "zod";
 
+import { calculateMinimumRequiredMonthlyBudget } from "@/lib/repayment/required-payment";
+
 export const debtSchema = z.object({
   name: z.string().min(1),
   balance: z.number().int().nonnegative(),
   annualRate: z.number().min(0),
-  minimumPayment: z.number().int().nonnegative(),
+  repaymentType: z.enum(["bullet", "equalPrincipal", "equalInstallment"]),
   prepaymentFeeRate: z.number().min(0).optional().default(0),
   feeExemptionMonths: z.number().int().nonnegative().optional().default(0),
   maturityMonths: z.number().int().positive().optional(),
+}).superRefine((value, ctx) => {
+  if (value.repaymentType === "bullet" && value.maturityMonths === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["maturityMonths"],
+      message: "원금만기일시상환은 만기 잔여 개월 수가 필요합니다.",
+    });
+  }
 });
 
 export const scenarioSchema = z
@@ -17,10 +27,7 @@ export const scenarioSchema = z
     debts: z.array(debtSchema).min(1),
   })
   .superRefine((value, ctx) => {
-    const minimumRequired = value.debts.reduce(
-      (sum, debt) => sum + debt.minimumPayment,
-      0,
-    );
+    const minimumRequired = calculateMinimumRequiredMonthlyBudget(value.debts);
     if (value.monthlyBudget < minimumRequired) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

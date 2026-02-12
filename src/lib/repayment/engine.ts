@@ -1,5 +1,9 @@
 import { rankDebtsByStrategy } from "@/lib/repayment/strategies";
-import { calculateMonthlyInterest, preciseAdd, preciseSubtract, toKrw } from "@/utils/currency";
+import {
+  calculateMinimumRequiredMonthlyBudget,
+  calculateRequiredPayment,
+} from "@/lib/repayment/required-payment";
+import { preciseAdd, preciseSubtract, toKrw } from "@/utils/currency";
 import { calculatePrepaymentFee } from "@/utils/fee-calculator";
 import type {
   Debt,
@@ -57,10 +61,7 @@ function simulateStrategyCore(
   input: ScenarioInput,
   strategy: StrategyType,
 ): SimulationCoreResult {
-  const minimumRequired = input.debts.reduce(
-    (sum, debt) => sum + debt.minimumPayment,
-    0,
-  );
+  const minimumRequired = calculateMinimumRequiredMonthlyBudget(input.debts);
 
   if (input.monthlyBudget < minimumRequired) {
     throw new Error("BUDGET_BELOW_MINIMUM");
@@ -86,28 +87,34 @@ function simulateStrategyCore(
         continue;
       }
 
-      const interest = calculateMonthlyInterest(
-        debt.remainingBalance,
-        debt.annualRate,
+      const required = calculateRequiredPayment(
+        {
+          remainingBalance: debt.remainingBalance,
+          annualRate: debt.annualRate,
+          repaymentType: debt.repaymentType,
+          maturityMonths: debt.maturityMonths,
+        },
+        monthIndex - 1,
       );
-      const minimum = Math.min(
-        debt.minimumPayment,
-        debt.remainingBalance + interest,
-      );
-      const principal = Math.max(0, minimum - interest);
+      const payment = Math.min(required.payment, debt.remainingBalance + required.interest);
+      const principal = Math.max(0, payment - required.interest);
 
       debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, principal));
       if (debt.remainingBalance <= 1) {
         debt.remainingBalance = 0;
       }
-      totalInterest = toKrw(preciseAdd(totalInterest, interest));
-      budgetLeft = toKrw(preciseSubtract(budgetLeft, minimum));
+      totalInterest = toKrw(preciseAdd(totalInterest, required.interest));
+      const nextBudget = preciseSubtract(budgetLeft, payment);
+      if (nextBudget < 0) {
+        throw new Error("BUDGET_BELOW_MINIMUM");
+      }
+      budgetLeft = toKrw(nextBudget);
 
       monthlyPlans.push({
         monthIndex,
         debtName: debt.name,
-        paymentAmount: minimum,
-        interestAmount: interest,
+        paymentAmount: payment,
+        interestAmount: required.interest,
         principalAmount: principal,
         remainingBalance: debt.remainingBalance,
       });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { simulateStrategy } from "@/lib/repayment/engine";
+import type { ScenarioInput } from "@/types/repayment";
 
 function monthEndRemainingTotals(
   plans: Array<{ monthIndex: number; debtName: string; remainingBalance: number }>,
@@ -35,7 +36,7 @@ describe("simulateStrategy", () => {
             name: "single",
             balance: 1200000,
             annualRate: 0.12,
-            minimumPayment: 100000,
+            repaymentType: "equalInstallment",
           },
         ],
       },
@@ -58,7 +59,7 @@ describe("simulateStrategy", () => {
               name: "single",
               balance: 1200000,
               annualRate: 0.12,
-              minimumPayment: 200000,
+              repaymentType: "equalInstallment",
             },
           ],
         },
@@ -67,8 +68,54 @@ describe("simulateStrategy", () => {
     ).toThrow("BUDGET_BELOW_MINIMUM");
   });
 
+  it("requires bullet maturity month payoff budget", () => {
+    expect(() =>
+      simulateStrategy(
+        {
+          monthlyBudget: 50_000,
+          extraPayment: 0,
+          debts: [
+            {
+              name: "bullet-loan",
+              balance: 1_000_000,
+              annualRate: 0.12,
+              repaymentType: "bullet",
+              maturityMonths: 2,
+            },
+          ],
+        },
+        "avalanche",
+      ),
+    ).toThrow("BUDGET_BELOW_MINIMUM");
+  });
+
+  it("reflects principal-heavy reduction for equal principal", () => {
+    const result = simulateStrategy(
+      {
+        monthlyBudget: 600_000,
+        extraPayment: 0,
+        debts: [
+          {
+            name: "equal-principal",
+            balance: 1_200_000,
+            annualRate: 0.12,
+            repaymentType: "equalPrincipal",
+            maturityMonths: 3,
+          },
+        ],
+      },
+      "snowball",
+    );
+
+    const firstMonth = result.monthlyPlans.find((item) => item.monthIndex === 1 && item.interestAmount > 0);
+    const secondMonth = result.monthlyPlans.find((item) => item.monthIndex === 2 && item.interestAmount > 0);
+
+    expect(firstMonth?.principalAmount).toBeGreaterThan(0);
+    expect(secondMonth?.interestAmount).toBeLessThan(firstMonth?.interestAmount ?? Number.POSITIVE_INFINITY);
+  });
+
   it("avalanche and snowball produce different payoff order for mixed debts", () => {
-    const input = {
+    const input: ScenarioInput = {
       monthlyBudget: 550000,
       extraPayment: 0,
       debts: [
@@ -76,13 +123,13 @@ describe("simulateStrategy", () => {
           name: "high-rate",
           balance: 3000000,
           annualRate: 0.19,
-          minimumPayment: 150000,
+          repaymentType: "equalInstallment",
         },
         {
           name: "small-balance",
           balance: 1200000,
           annualRate: 0.08,
-          minimumPayment: 120000,
+          repaymentType: "equalInstallment",
         },
       ],
     };
@@ -111,7 +158,7 @@ describe("simulateStrategy", () => {
             name: "fee-loan",
             balance: 4_000_000,
             annualRate: 0.12,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
             prepaymentFeeRate: 0.02,
             feeExemptionMonths: 12,
           },
@@ -129,7 +176,7 @@ describe("simulateStrategy", () => {
             name: "fee-loan",
             balance: 4_000_000,
             annualRate: 0.12,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
             prepaymentFeeRate: 0,
             feeExemptionMonths: 12,
           },
@@ -152,7 +199,7 @@ describe("simulateStrategy", () => {
             name: "boundary-loan",
             balance: 2_000_000,
             annualRate: 0.1,
-            minimumPayment: 150_000,
+            repaymentType: "equalInstallment",
             prepaymentFeeRate: 0.02,
             feeExemptionMonths: 1,
           },
@@ -170,7 +217,7 @@ describe("simulateStrategy", () => {
             name: "boundary-loan",
             balance: 2_000_000,
             annualRate: 0.1,
-            minimumPayment: 150_000,
+            repaymentType: "equalInstallment",
             prepaymentFeeRate: 0.02,
             feeExemptionMonths: 0,
           },
@@ -193,7 +240,7 @@ describe("simulateStrategy", () => {
             name: "low-rate-high-fee",
             balance: 2_500_000,
             annualRate: 0.01,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
             prepaymentFeeRate: 0.2,
             feeExemptionMonths: 12,
           },
@@ -216,7 +263,8 @@ describe("simulateStrategy", () => {
             name: "alpha",
             balance: 4_500_000,
             annualRate: 0.16,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
+            maturityMonths: 60,
             prepaymentFeeRate: 0.03,
             feeExemptionMonths: 6,
           },
@@ -224,7 +272,8 @@ describe("simulateStrategy", () => {
             name: "beta",
             balance: 3_000_000,
             annualRate: 0.09,
-            minimumPayment: 180_000,
+            repaymentType: "equalInstallment",
+            maturityMonths: 60,
             prepaymentFeeRate: 0.02,
             feeExemptionMonths: 6,
           },
@@ -242,7 +291,8 @@ describe("simulateStrategy", () => {
             name: "alpha",
             balance: 4_500_000,
             annualRate: 0.16,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
+            maturityMonths: 60,
             prepaymentFeeRate: 0,
             feeExemptionMonths: 6,
           },
@@ -250,7 +300,8 @@ describe("simulateStrategy", () => {
             name: "beta",
             balance: 3_000_000,
             annualRate: 0.09,
-            minimumPayment: 180_000,
+            repaymentType: "equalInstallment",
+            maturityMonths: 60,
             prepaymentFeeRate: 0,
             feeExemptionMonths: 6,
           },
@@ -275,7 +326,7 @@ describe("simulateStrategy", () => {
             name: "tiny",
             balance: 90_000,
             annualRate: 0,
-            minimumPayment: 300_000,
+            repaymentType: "equalInstallment",
           },
         ],
       },

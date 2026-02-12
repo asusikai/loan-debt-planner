@@ -8,14 +8,14 @@ describe("repayment validation schema", () => {
       name: "loan-a",
       balance: 5_000_000,
       annualRate: 0.12,
-      minimumPayment: 200_000,
+      repaymentType: "equalInstallment",
       maturityMonths: 24,
       prepaymentFeeRate: 0.01,
       feeExemptionMonths: 12,
     });
 
     expect(parsed.name).toBe("loan-a");
-    expect(parsed.minimumPayment).toBe(200_000);
+    expect(parsed.repaymentType).toBe("equalInstallment");
     expect(parsed.feeExemptionMonths).toBe(12);
   });
 
@@ -24,11 +24,22 @@ describe("repayment validation schema", () => {
       name: "loan-b",
       balance: 3_000_000,
       annualRate: 0.08,
-      minimumPayment: 120_000,
+      repaymentType: "equalPrincipal",
     });
 
     expect(parsed.prepaymentFeeRate).toBe(0);
     expect(parsed.feeExemptionMonths).toBe(0);
+  });
+
+  it("requires maturity months for bullet repayment", () => {
+    const parsed = debtSchema.safeParse({
+      name: "loan-b",
+      balance: 3_000_000,
+      annualRate: 0.08,
+      repaymentType: "bullet",
+    });
+
+    expect(parsed.success).toBe(false);
   });
 
   it("accepts valid scenario payload", () => {
@@ -40,7 +51,8 @@ describe("repayment validation schema", () => {
           name: "loan-a",
           balance: 5_000_000,
           annualRate: 0.12,
-          minimumPayment: 200_000,
+          repaymentType: "equalInstallment",
+          maturityMonths: 24,
         },
       ],
     });
@@ -55,7 +67,7 @@ describe("repayment validation schema", () => {
         name: "loan-a",
         balance: -1,
         annualRate: 1.2,
-        minimumPayment: -10,
+        repaymentType: "equalInstallment",
       }),
     ).toThrow();
   });
@@ -65,7 +77,7 @@ describe("repayment validation schema", () => {
       name: "loan-a",
       balance: 1_000_000,
       annualRate: 0.09,
-      minimumPayment: 50_000,
+      repaymentType: "equalInstallment",
       prepaymentFeeRate: -0.01,
       feeExemptionMonths: -1,
     });
@@ -73,17 +85,18 @@ describe("repayment validation schema", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects scenario when budget is below total minimum payment", () => {
+  it("rejects scenario when budget is below total required payment", () => {
     expect(() =>
       scenarioSchema.parse({
-        monthlyBudget: 100_000,
+        monthlyBudget: 50_000,
         extraPayment: 0,
         debts: [
           {
             name: "loan-a",
             balance: 5_000_000,
             annualRate: 0.12,
-            minimumPayment: 200_000,
+            repaymentType: "equalInstallment",
+            maturityMonths: 24,
           },
         ],
       }),

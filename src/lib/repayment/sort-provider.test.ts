@@ -12,9 +12,9 @@ function names(debts: Debt[]): string[] {
 describe("SortProvider", () => {
   it("uses maturity as tie-breaker when avalanche rates are equal", () => {
     const input: Debt[] = [
-      { name: "late", balance: 2_000_000, annualRate: 0.1, minimumPayment: 100_000, maturityMonths: 10 },
-      { name: "soon", balance: 2_000_000, annualRate: 0.1, minimumPayment: 100_000, maturityMonths: 2 },
-      { name: "middle", balance: 2_000_000, annualRate: 0.1, minimumPayment: 100_000, maturityMonths: 6 },
+      { name: "late", balance: 2_000_000, annualRate: 0.1, repaymentType: "equalInstallment", maturityMonths: 10 },
+      { name: "soon", balance: 2_000_000, annualRate: 0.1, repaymentType: "equalInstallment", maturityMonths: 2 },
+      { name: "middle", balance: 2_000_000, annualRate: 0.1, repaymentType: "equalInstallment", maturityMonths: 6 },
     ];
 
     const sorted = sortProvider.rankDebtsByStrategy(input, "avalanche");
@@ -24,9 +24,9 @@ describe("SortProvider", () => {
 
   it("moves zero-rate debts to the end for avalanche", () => {
     const input: Debt[] = [
-      { name: "zero", balance: 1_000_000, annualRate: 0, minimumPayment: 100_000, maturityMonths: 1 },
-      { name: "high", balance: 1_000_000, annualRate: 0.2, minimumPayment: 100_000, maturityMonths: 12 },
-      { name: "mid", balance: 1_000_000, annualRate: 0.08, minimumPayment: 100_000, maturityMonths: 12 },
+      { name: "zero", balance: 1_000_000, annualRate: 0, repaymentType: "equalInstallment", maturityMonths: 1 },
+      { name: "high", balance: 1_000_000, annualRate: 0.2, repaymentType: "equalInstallment", maturityMonths: 12 },
+      { name: "mid", balance: 1_000_000, annualRate: 0.08, repaymentType: "equalInstallment", maturityMonths: 12 },
     ];
 
     const sorted = sortProvider.rankDebtsByStrategy(input, "avalanche");
@@ -36,9 +36,9 @@ describe("SortProvider", () => {
 
   it("keeps snowball primary ordering by balance", () => {
     const input: Debt[] = [
-      { name: "large", balance: 3_000_000, annualRate: 0.2, minimumPayment: 100_000, maturityMonths: 2 },
-      { name: "small", balance: 1_000_000, annualRate: 0.02, minimumPayment: 100_000, maturityMonths: 12 },
-      { name: "medium", balance: 2_000_000, annualRate: 0.05, minimumPayment: 100_000, maturityMonths: 8 },
+      { name: "large", balance: 3_000_000, annualRate: 0.2, repaymentType: "equalInstallment", maturityMonths: 2 },
+      { name: "small", balance: 1_000_000, annualRate: 0.02, repaymentType: "equalInstallment", maturityMonths: 12 },
+      { name: "medium", balance: 2_000_000, annualRate: 0.05, repaymentType: "equalInstallment", maturityMonths: 8 },
     ];
 
     const sorted = sortProvider.rankDebtsByStrategy(input, "snowball");
@@ -48,9 +48,9 @@ describe("SortProvider", () => {
 
   it("handles all zero-rate debts with maturity ordering", () => {
     const input: Debt[] = [
-      { name: "z3", balance: 900_000, annualRate: 0, minimumPayment: 90_000, maturityMonths: 8 },
-      { name: "z1", balance: 900_000, annualRate: 0, minimumPayment: 90_000, maturityMonths: 1 },
-      { name: "z2", balance: 900_000, annualRate: 0, minimumPayment: 90_000, maturityMonths: 4 },
+      { name: "z3", balance: 900_000, annualRate: 0, repaymentType: "equalInstallment", maturityMonths: 8 },
+      { name: "z1", balance: 900_000, annualRate: 0, repaymentType: "equalInstallment", maturityMonths: 1 },
+      { name: "z2", balance: 900_000, annualRate: 0, repaymentType: "equalInstallment", maturityMonths: 4 },
     ];
 
     const sorted = sortProvider.rankDebtsByStrategy(input, "avalanche");
