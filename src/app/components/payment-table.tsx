@@ -141,7 +141,7 @@ export function PaymentTable({ monthlyPlans }: PaymentTableProps) {
         <thead>
           <tr>
             <th>월</th>
-            <th>채무 항목 수</th>
+            <th>납부 항목 수</th>
             <th>총 납입액</th>
             <th>총 이자</th>
             <th>누적 이자</th>

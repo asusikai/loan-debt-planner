@@ -27,6 +27,7 @@ const emptyForm: DebtFormValues = {
   annualRatePercent: "",
   repaymentType: "equalInstallment",
   maturityMonths: "",
+  graceMonths: "",
   prepaymentFeeRatePercent: "",
 };
 
@@ -42,6 +43,7 @@ function HomePageContent() {
   const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [focusDebtId, setFocusDebtId] = useState<string | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [extraPayment, setExtraPayment] = useState("");
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
@@ -50,6 +52,8 @@ function HomePageContent() {
   const [recommendation, setRecommendation] = useState<RecommendationResult | null>(null);
   const [debtPendingDeletion, setDebtPendingDeletion] = useState<EditableDebt | null>(null);
   const [deleteTriggerButton, setDeleteTriggerButton] = useState<HTMLButtonElement | null>(null);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [resetTriggerButton, setResetTriggerButton] = useState<HTMLButtonElement | null>(null);
   const [results, setResults] = useState<{
     avalanche: StrategyResult;
     snowball: StrategyResult;
@@ -99,6 +103,24 @@ function HomePageContent() {
     }
   }, [debts.length, clearBudgetConfig]);
 
+  useEffect(() => {
+    if (!focusDebtId) {
+      return;
+    }
+
+    const desktopTarget = document.getElementById(`debt-focus-target-${focusDebtId}`) as HTMLElement | null;
+    const mobileTarget = document.getElementById(`debt-focus-target-mobile-${focusDebtId}`) as HTMLElement | null;
+    const target = desktopTarget ?? mobileTarget;
+
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    target.focus();
+    setFocusDebtId(null);
+  }, [debts, focusDebtId]);
+
   const totalMinimum = useMemo(
     () => calculateMinimumRequiredMonthlyBudget(debts),
     [debts],
@@ -127,6 +149,12 @@ function HomePageContent() {
       annualRatePercent: (editingDebt.annualRate * 100).toFixed(2),
       repaymentType: editingDebt.repaymentType,
       maturityMonths: editingDebt.maturityMonths !== undefined ? String(editingDebt.maturityMonths) : "",
+      graceMonths:
+        editingDebt.repaymentType === "bullet"
+          ? ""
+          : editingDebt.graceMonths !== undefined
+            ? String(editingDebt.graceMonths)
+            : "",
       prepaymentFeeRatePercent:
         editingDebt.prepaymentFeeRate !== undefined
           ? (editingDebt.prepaymentFeeRate * 100).toFixed(2)
@@ -147,6 +175,8 @@ function HomePageContent() {
     const maturityMonthsInput = formValues.maturityMonths.trim();
     const maturityMonths =
       maturityMonthsInput === "" ? undefined : Math.floor(toNumber(maturityMonthsInput));
+    const graceMonthsInput = formValues.graceMonths.trim();
+    const graceMonths = graceMonthsInput === "" ? undefined : Math.floor(toNumber(graceMonthsInput));
     const prepaymentFeeRatePercentInput = formValues.prepaymentFeeRatePercent.trim();
     const prepaymentFeeRatePercent =
       prepaymentFeeRatePercentInput === ""
@@ -171,6 +201,24 @@ function HomePageContent() {
       return;
     }
 
+    if (repaymentType === "bullet" && graceMonths !== undefined && graceMonths > 0) {
+      setErrorMessage("원금만기일시상환은 거치 기간을 설정할 수 없습니다.");
+      pushToast("원금만기일시상환에서는 거치 기간을 비워 주세요.", "warning");
+      return;
+    }
+
+    if (graceMonths !== undefined && graceMonths < 0) {
+      setErrorMessage("거치 기간은 0 이상이어야 합니다.");
+      pushToast("거치 기간 입력을 확인해 주세요.", "warning");
+      return;
+    }
+
+    if (maturityMonths !== undefined && graceMonths !== undefined && graceMonths >= maturityMonths) {
+      setErrorMessage("거치 기간은 만기 잔여 개월 수보다 작아야 합니다.");
+      pushToast("거치 기간/만기 입력을 확인해 주세요.", "warning");
+      return;
+    }
+
     if (prepaymentFeeRatePercent !== undefined && prepaymentFeeRatePercent < 0) {
       setErrorMessage("중도상환수수료율은 0 이상이어야 합니다.");
       pushToast("중도상환수수료율은 0 이상이어야 합니다.", "warning");
@@ -184,13 +232,19 @@ function HomePageContent() {
       annualRate: annualRatePercent / 100,
       repaymentType,
       maturityMonths,
+      graceMonths: repaymentType === "bullet" ? undefined : graceMonths,
       prepaymentFeeRate:
         prepaymentFeeRatePercent !== undefined
           ? prepaymentFeeRatePercent / 100
           : undefined,
     };
 
+    const isCreating = editingId === null;
+
     upsertDebt(payload);
+    if (isCreating) {
+      setFocusDebtId(payload.id);
+    }
 
     setErrorMessage("");
     resetForm();
@@ -238,8 +292,9 @@ function HomePageContent() {
     setErrorMessage("");
   }, []);
 
-  const handleResetState = useCallback(() => {
+  const executeResetState = useCallback(() => {
     setDebts(initialDebts);
+    setFocusDebtId(null);
     setFormMode(null);
     setExtraPayment("");
     setResults(null);
@@ -251,6 +306,20 @@ function HomePageContent() {
     clearBudgetConfig();
     pushToast("입력 상태가 초기화되었습니다.", "success");
   }, [clearBudgetConfig, pushToast, setDebts]);
+
+  const requestResetState = useCallback((trigger: HTMLButtonElement) => {
+    setResetTriggerButton(trigger);
+    setIsResetConfirmOpen(true);
+  }, []);
+
+  const cancelResetState = useCallback(() => {
+    setIsResetConfirmOpen(false);
+  }, []);
+
+  const confirmResetState = useCallback(() => {
+    setIsResetConfirmOpen(false);
+    executeResetState();
+  }, [executeResetState]);
 
   const handleCalculate = useCallback(() => {
     try {
@@ -301,7 +370,11 @@ function HomePageContent() {
     <main>
       <h1>DebtPilot</h1>
       <p className="muted">채무 입력 후 상환 전략을 비교해 총이자와 완납 기간을 확인하세요.</p>
-      <button type="button" className="ghost small" onClick={handleResetState}>
+      <button
+        type="button"
+        className="ghost small"
+        onClick={(event) => requestResetState(event.currentTarget)}
+      >
         상태 초기화
       </button>
       {storageWarning ? (
@@ -321,6 +394,7 @@ function HomePageContent() {
             onEdit={handleEditDebt}
             onDelete={requestDeleteDebt}
             onAddNew={handleAddDebt}
+            focusDebtId={focusDebtId}
           />
 
           {formMode ? (
@@ -396,6 +470,16 @@ function HomePageContent() {
         onConfirm={confirmDeleteDebt}
         onCancel={cancelDeleteDebt}
         restoreFocusTo={deleteTriggerButton}
+      />
+      <ConfirmationDialog
+        isOpen={isResetConfirmOpen}
+        title="상태 초기화 확인"
+        description="모든 데이터가 초기화 됩니다"
+        confirmLabel="예"
+        cancelLabel="아니오"
+        onConfirm={confirmResetState}
+        onCancel={cancelResetState}
+        restoreFocusTo={resetTriggerButton}
       />
       <ErrorModal
         open={errorModal.open}

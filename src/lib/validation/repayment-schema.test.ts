@@ -10,6 +10,7 @@ describe("repayment validation schema", () => {
       annualRate: 0.12,
       repaymentType: "equalInstallment",
       maturityMonths: 24,
+      graceMonths: 3,
       prepaymentFeeRate: 0.01,
       feeExemptionMonths: 12,
     });
@@ -17,6 +18,7 @@ describe("repayment validation schema", () => {
     expect(parsed.name).toBe("loan-a");
     expect(parsed.repaymentType).toBe("equalInstallment");
     expect(parsed.feeExemptionMonths).toBe(12);
+    expect(parsed.graceMonths).toBe(3);
   });
 
   it("applies default fee-related fields when omitted", () => {
@@ -79,6 +81,19 @@ describe("repayment validation schema", () => {
       repaymentType: "equalInstallment",
       prepaymentFeeRate: -0.01,
       feeExemptionMonths: -1,
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects grace months equal or greater than maturity", () => {
+    const parsed = debtSchema.safeParse({
+      name: "loan-a",
+      balance: 1_000_000,
+      annualRate: 0.09,
+      repaymentType: "equalInstallment",
+      maturityMonths: 12,
+      graceMonths: 12,
     });
 
     expect(parsed.success).toBe(false);

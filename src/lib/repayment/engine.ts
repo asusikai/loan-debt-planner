@@ -25,6 +25,45 @@ type SimulationCoreResult = {
 
 const MAX_MONTHS = 1200;
 
+function resolveExtraPrincipalWithinBudget(
+  budgetLeft: number,
+  maxPrincipal: number,
+  rate: number,
+  elapsedMonths: number,
+  exemptionMonths: number,
+): { principal: number; fee: number } {
+  const maxCandidate = Math.floor(Math.min(Math.max(0, budgetLeft), Math.max(0, maxPrincipal)));
+  if (maxCandidate <= 0) {
+    return { principal: 0, fee: 0 };
+  }
+
+  let low = 0;
+  let high = maxCandidate;
+  let bestPrincipal = 0;
+  let bestFee = 0;
+
+  while (low <= high) {
+    const principal = Math.floor((low + high) / 2);
+    const fee = calculatePrepaymentFee({
+      amount: principal,
+      rate,
+      elapsedMonths,
+      exemptionMonths,
+    });
+    const totalSpend = principal + fee;
+
+    if (totalSpend <= budgetLeft) {
+      bestPrincipal = principal;
+      bestFee = fee;
+      low = principal + 1;
+    } else {
+      high = principal - 1;
+    }
+  }
+
+  return { principal: bestPrincipal, fee: bestFee };
+}
+
 function calculatePayoffDate(monthsToPayoff: number): string {
   const today = new Date();
   const payoff = new Date(today.getFullYear(), today.getMonth() + monthsToPayoff, 1);
@@ -88,6 +127,7 @@ function simulateStrategyCore(
           annualRate: debt.annualRate,
           repaymentType: debt.repaymentType,
           maturityMonths: debt.maturityMonths,
+          graceMonths: debt.graceMonths,
         },
         monthIndex - 1,
       );
@@ -125,19 +165,23 @@ function simulateStrategyCore(
         break;
       }
 
-      const extra = Math.min(budgetLeft, debt.remainingBalance);
-      const fee = calculatePrepaymentFee({
-        amount: extra,
-        rate: debt.prepaymentFeeRate ?? 0,
-        elapsedMonths: monthIndex - 1,
-        exemptionMonths: debt.feeExemptionMonths ?? 0,
-      });
+      const { principal: extra, fee } = resolveExtraPrincipalWithinBudget(
+        budgetLeft,
+        debt.remainingBalance,
+        debt.prepaymentFeeRate ?? 0,
+        monthIndex - 1,
+        debt.feeExemptionMonths ?? 0,
+      );
+
+      if (extra <= 0) {
+        continue;
+      }
 
       debt.remainingBalance = toKrw(preciseSubtract(debt.remainingBalance, extra));
       if (debt.remainingBalance <= 1) {
         debt.remainingBalance = 0;
       }
-      budgetLeft = toKrw(preciseSubtract(budgetLeft, extra));
+      budgetLeft = toKrw(preciseSubtract(budgetLeft, extra + fee));
       totalFeesPaid = toKrw(preciseAdd(totalFeesPaid, fee));
 
       monthlyPlans.push({

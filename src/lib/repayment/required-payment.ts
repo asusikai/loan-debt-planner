@@ -10,7 +10,7 @@ export type RequiredPayment = {
   payment: number;
 };
 
-type PaymentInput = Pick<Debt, "annualRate" | "maturityMonths" | "repaymentType"> & {
+type PaymentInput = Pick<Debt, "annualRate" | "maturityMonths" | "graceMonths" | "repaymentType"> & {
   remainingBalance: number;
 };
 
@@ -41,7 +41,17 @@ function allocatePrincipal(
   annualRate: number,
   elapsedMonths: number,
   maturityMonths: number | undefined,
+  graceMonths: number | undefined,
 ): number {
+  const normalizedGraceMonths =
+    Number.isInteger(graceMonths) && graceMonths !== undefined && graceMonths > 0
+      ? graceMonths
+      : 0;
+
+  if (repaymentType !== "bullet" && elapsedMonths < normalizedGraceMonths) {
+    return 0;
+  }
+
   const monthsLeft = resolveRemainingMonths(maturityMonths, elapsedMonths);
 
   if (repaymentType === "bullet") {
@@ -81,6 +91,7 @@ export function calculateRequiredPayment(input: PaymentInput, elapsedMonths: num
       input.annualRate,
       elapsedMonths,
       input.maturityMonths,
+      input.graceMonths,
     ),
   );
   const payment = toKrw(interest + principal);
@@ -99,6 +110,7 @@ export function calculateMinimumRequiredMonthlyBudget(debts: Debt[]): number {
         repaymentType: debt.repaymentType,
         annualRate: debt.annualRate,
         maturityMonths: debt.maturityMonths,
+        graceMonths: debt.graceMonths,
         remainingBalance: debt.balance,
       },
       0,

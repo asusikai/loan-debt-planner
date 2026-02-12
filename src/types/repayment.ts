@@ -14,6 +14,8 @@ export type DebtCore = {
   repaymentType: RepaymentType;
   /** Optional remaining months to maturity. */
   maturityMonths?: number;
+  /** Optional grace period months (interest-only period). */
+  graceMonths?: number;
 };
 
 export type RepaymentType = "bullet" | "equalPrincipal" | "equalInstallment";
@@ -36,6 +38,8 @@ export type Debt = {
   feeExemptionMonths?: number;
   /** Optional remaining months to maturity. */
   maturityMonths?: number;
+  /** Optional grace period months (interest-only period). */
+  graceMonths?: number;
 };
 
 /**

@@ -24,16 +24,26 @@ export function StrategyComparison({
     results.avalanche.totalInterest <= results.snowball.totalInterest ? "avalanche" : "snowball";
   const durationWinner =
     results.avalanche.monthsToPayoff <= results.snowball.monthsToPayoff ? "avalanche" : "snowball";
-  const strategyTip =
-    selectedStrategy === "avalanche"
-      ? "Avalanche는 총 이자 비용을 줄이는 데 유리한 전략입니다."
-      : "Snowball은 작은 채무부터 정리해 심리적 동기 부여에 유리합니다.";
-
   return (
     <>
       <div className="result-cards">
         <article className="result-card">
-          <h3>Avalanche</h3>
+          <h3>
+            Avalanche
+            <span className="help-tooltip-wrap" style={{ marginLeft: 6 }}>
+              <button
+                type="button"
+                className="help-tooltip-trigger"
+                aria-label="Avalanche 전략 설명 보기"
+                aria-describedby="strategy-avalanche-tooltip"
+              >
+                ?
+              </button>
+              <span id="strategy-avalanche-tooltip" role="tooltip" className="help-tooltip-content">
+                Avalanche는 이자율이 높은 채무부터 추가 상환해 총 이자 비용을 줄이는 데 유리합니다.
+              </span>
+            </span>
+          </h3>
           <p>총이자: {toCurrency(results.avalanche.totalInterest)}</p>
           {interestWinner === "avalanche" ? <p className="winner-badge">최저 이자 전략</p> : null}
           <p>완납 개월: {results.avalanche.monthsToPayoff}개월</p>
@@ -41,7 +51,22 @@ export function StrategyComparison({
           <p>완납 예정: {results.avalanche.payoffDate}</p>
         </article>
         <article className="result-card">
-          <h3>Snowball</h3>
+          <h3>
+            Snowball
+            <span className="help-tooltip-wrap" style={{ marginLeft: 6 }}>
+              <button
+                type="button"
+                className="help-tooltip-trigger"
+                aria-label="Snowball 전략 설명 보기"
+                aria-describedby="strategy-snowball-tooltip"
+              >
+                ?
+              </button>
+              <span id="strategy-snowball-tooltip" role="tooltip" className="help-tooltip-content">
+                Snowball은 잔액이 작은 채무부터 추가 상환해 조기 완납 경험을 만들고 동기 부여에 유리합니다.
+              </span>
+            </span>
+          </h3>
           <p>총이자: {toCurrency(results.snowball.totalInterest)}</p>
           {interestWinner === "snowball" ? <p className="winner-badge">최저 이자 전략</p> : null}
           <p>완납 개월: {results.snowball.monthsToPayoff}개월</p>
@@ -84,7 +109,6 @@ export function StrategyComparison({
           </p>
         </div>
       ) : null}
-      <p className="muted strategy-recommendation">추천: {strategyTip}</p>
     </>
   );
 }

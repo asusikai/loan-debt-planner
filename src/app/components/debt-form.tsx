@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import type { ReactNode } from "react";
 
 import {
   validateDebtForm,
@@ -14,6 +15,7 @@ export type DebtFormValues = {
   annualRatePercent: string;
   repaymentType: RepaymentType;
   maturityMonths: string;
+  graceMonths: string;
   prepaymentFeeRatePercent: string;
 };
 
@@ -24,6 +26,24 @@ type DebtFormProps = {
   onCancel: () => void;
 };
 
+function FieldHelpTooltip({ id, label, content }: { id: string; label: string; content: ReactNode }) {
+  return (
+    <span className="help-tooltip-wrap">
+      <button
+        type="button"
+        className="help-tooltip-trigger"
+        aria-label={label}
+        aria-describedby={id}
+      >
+        ?
+      </button>
+      <span id={id} role="tooltip" className="help-tooltip-content">
+        {content}
+      </span>
+    </span>
+  );
+}
+
 function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
   return (
     left.name === right.name &&
@@ -31,11 +51,14 @@ function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
     left.annualRatePercent === right.annualRatePercent &&
     left.repaymentType === right.repaymentType &&
     left.maturityMonths === right.maturityMonths &&
+    left.graceMonths === right.graceMonths &&
     left.prepaymentFeeRatePercent === right.prepaymentFeeRatePercent
   );
 }
 
 export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormProps) {
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const balanceInputRef = useRef<HTMLInputElement | null>(null);
   const [values, setValues] = useState<DebtFormValues>(initialValues);
   const [errors, setErrors] = useState<DebtFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<DebtFormField, boolean>>>({});
@@ -47,6 +70,16 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
     setTouched({});
     setSubmitAttempted(false);
   }, [initialValues]);
+
+  useEffect(() => {
+    if (mode === "edit") {
+      balanceInputRef.current?.focus();
+      balanceInputRef.current?.select();
+      return;
+    }
+
+    nameInputRef.current?.focus();
+  }, [mode, initialValues]);
 
   useEffect(() => {
     const hasTouchedField = Object.values(touched).some(Boolean);
@@ -110,6 +143,7 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         채무명 *
         <input
           id="debt-name"
+          ref={nameInputRef}
           value={values.name}
           onChange={(event) => updateField("name", event.target.value)}
           onBlur={() => markTouched("name")}
@@ -128,6 +162,7 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         잔액(원) *
         <input
           id="debt-balance"
+          ref={balanceInputRef}
           type="number"
           value={values.balance}
           onChange={(event) => updateField("balance", event.target.value)}
@@ -164,11 +199,32 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         ) : null}
       </label>
       <label htmlFor="debt-repayment-type">
-        상환 방식 *
+        <span className="label-row">
+          <span>상환 방식 *</span>
+          <FieldHelpTooltip
+            id="debt-repayment-help"
+            label="원리금균등상환 설명보기"
+            content={
+              <>
+                원리금균등상환: 매월 총 납입액이 거의 같습니다.
+                <br />
+                원금균등상환: 매월 상환 원금이 같아 시간이 지날수록 납입액이 줄어듭니다.
+                <br />
+                원금만기일시상환: 만기 전에는 이자 중심으로 납부하고 만기에 원금을 일시 상환합니다.
+              </>
+            }
+          />
+        </span>
         <select
           id="debt-repayment-type"
           value={values.repaymentType}
-          onChange={(event) => updateField("repaymentType", event.target.value as RepaymentType)}
+          onChange={(event) => {
+            const nextType = event.target.value as RepaymentType;
+            updateField("repaymentType", nextType);
+            if (nextType === "bullet") {
+              updateField("graceMonths", "");
+            }
+          }}
           onBlur={() => markTouched("repaymentType")}
           aria-invalid={Boolean(getFieldError("repaymentType"))}
           aria-describedby={getFieldError("repaymentType") ? "debt-repayment-type-error" : undefined}
@@ -201,6 +257,30 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         {getFieldError("maturityMonths") ? (
           <p id="debt-maturity-months-error" className="field-error" role="alert">
             {getFieldError("maturityMonths")}
+          </p>
+        ) : null}
+      </label>
+      <label htmlFor="debt-grace-months">
+        거치 기간(개월, 선택)
+        <input
+          id="debt-grace-months"
+          type="number"
+          min="0"
+          step="1"
+          value={values.graceMonths}
+          onChange={(event) => updateField("graceMonths", event.target.value)}
+          onBlur={() => markTouched("graceMonths")}
+          disabled={values.repaymentType === "bullet"}
+          aria-invalid={Boolean(getFieldError("graceMonths"))}
+          aria-describedby={getFieldError("graceMonths") ? "debt-grace-months-error" : undefined}
+          placeholder="예: 6"
+        />
+        {values.repaymentType === "bullet" ? (
+          <p className="field-warning">원금만기일시상환은 거치 기간을 설정할 수 없습니다.</p>
+        ) : null}
+        {getFieldError("graceMonths") ? (
+          <p id="debt-grace-months-error" className="field-error" role="alert">
+            {getFieldError("graceMonths")}
           </p>
         ) : null}
       </label>

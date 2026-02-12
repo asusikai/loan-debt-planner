@@ -5,6 +5,7 @@ type DebtListProps = {
   onEdit: (id: string) => void;
   onDelete: (debt: EditableDebt, trigger: HTMLButtonElement) => void;
   onAddNew?: () => void;
+  focusDebtId?: string | null;
 };
 
 function formatCurrency(value: number): string {
@@ -39,7 +40,7 @@ function formatRepaymentType(value: EditableDebt["repaymentType"]): string {
   return "원리금균등상환";
 }
 
-export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
+export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: DebtListProps) {
   if (debts.length === 0) {
     return (
       <div className="debt-empty-state" style={{ marginTop: 16 }}>
@@ -71,6 +72,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               <th>연이율</th>
               <th>상환 방식</th>
               <th>만기 잔여 개월</th>
+              <th>거치 기간</th>
               <th>중도상환수수료율</th>
               <th>액션</th>
             </tr>
@@ -78,14 +80,22 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
           <tbody>
             {debts.map((debt) => (
               <tr key={debt.id}>
-                <td>{debt.name}</td>
+                <td id={`debt-anchor-${debt.id}`}>
+                  {debt.name}
+                </td>
                 <td>{formatCurrency(debt.balance)}</td>
                 <td>{formatRate(debt.annualRate)}</td>
                 <td>{formatRepaymentType(debt.repaymentType)}</td>
                 <td>{formatMaturityMonths(debt.maturityMonths)}</td>
+                <td>{formatMaturityMonths(debt.graceMonths)}</td>
                 <td>{formatRate(debt.prepaymentFeeRate)}</td>
                 <td>
-                  <button type="button" className="small" onClick={() => onEdit(debt.id)}>
+                  <button
+                    id={`debt-focus-target-${debt.id}`}
+                    type="button"
+                    className="small"
+                    onClick={() => onEdit(debt.id)}
+                  >
                     수정
                   </button>
                   <button
@@ -105,16 +115,21 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
       <div className="debt-cards-mobile" style={{ marginTop: 16 }}>
         {debts.map((debt) => (
           <article className="debt-card" key={`card-${debt.id}`}>
-            <h3>{debt.name}</h3>
+            <h3 id={`debt-anchor-mobile-${debt.id}`}>{debt.name}</h3>
             <p>
               잔액: <strong>{formatCurrency(debt.balance)}</strong>
             </p>
             <p>연이율: {formatRate(debt.annualRate)}</p>
             <p>상환 방식: {formatRepaymentType(debt.repaymentType)}</p>
             <p>만기 잔여 개월: {formatMaturityMonths(debt.maturityMonths)}</p>
+            <p>거치 기간: {formatMaturityMonths(debt.graceMonths)}</p>
             <p>중도상환수수료율: {formatRate(debt.prepaymentFeeRate)}</p>
             <div className="debt-card-actions">
-              <button type="button" onClick={() => onEdit(debt.id)}>
+              <button
+                id={`debt-focus-target-mobile-${debt.id}`}
+                type="button"
+                onClick={() => onEdit(debt.id)}
+              >
                 수정
               </button>
               <button

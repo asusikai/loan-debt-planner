@@ -1,51 +1,62 @@
-# 아키텍처 문서
+# 아키텍처 문서 (코드베이스 기준)
 
 ## 1. 아키텍처 개요
-- 유형: 단일 웹 애플리케이션(모놀리식), 클라이언트 중심 계산
-- 목표: 빠른 입력, 투명한 계산, 결과 비교 중심 UX
-- 제약: 외부 금융 API 미사용
+- 유형: Next.js App Router 기반 단일 웹앱
+- 계산 방식: 클라이언트 중심 계산 + 내부 API(Route Handler) 병행
+- 목표: 입력 즉시 전략 비교와 월별 상환 계획 제공
 
 ## 2. 기술 스택
-- Frontend/App: Next.js (App Router) + React + TypeScript
-- 상태 관리: React state + 필요 시 Zustand
-- 입력 검증: Zod
-- 테스트: Vitest, Playwright(선택)
+- Frontend/App: Next.js 15 + React 19 + TypeScript 5
+- 상태 관리: React state + 커스텀 훅(`src/hooks/`)
+- 검증: Zod(`src/lib/validation/`)
+- 테스트: Vitest(단위/회귀), Playwright(E2E)
 
-## 3. 논리 구조
+## 3. 실제 모듈 구조
 
-### 3.1 계층
-1. Presentation Layer
-   - 페이지, 폼, 결과 카드, 월별 상환표 렌더링
-2. Application Layer
-   - 사용자 입력을 표준 모델로 변환
-   - 전략 실행 오케스트레이션
-3. Domain Layer
-   - 상환 시뮬레이션 엔진(순수 함수)
-   - 전략별 정렬/배분 로직
-4. Infrastructure Layer
-   - LocalStorage 저장/복원(선택)
+### 3.1 Presentation
+- `src/app/page.tsx`: 메인 오케스트레이션
+- `src/app/components/`: 입력 폼/리스트/결과 카드/월별표
+- `src/components/common/`: ErrorBoundary, ErrorModal, Toast
 
-### 3.2 모듈 제안
-- `src/features/repayment/`: 화면 조립 및 유스케이스
-- `src/lib/repayment/engine.ts`: 월별 상환 계산 엔진
-- `src/lib/repayment/strategies.ts`: Avalanche/Snowball 우선순위
-- `src/lib/validation/repayment-schema.ts`: 입력 유효성 검증
-- `src/types/`: Debt, Scenario, SimulationResult 등 타입
+### 3.2 Domain
+- `src/lib/repayment/engine.ts`: 전략 시뮬레이션 핵심 엔진
+- `src/lib/repayment/required-payment.ts`: 월 필수 납입액 계산
+- `src/lib/repayment/sort-provider.ts`: 전략별 정렬 규칙
+- `src/lib/repayment/recommendation.ts`: 추천 전략 산출
+
+### 3.3 Validation
+- `src/lib/validation/debt-form-schema.ts`: UI 폼 입력 검증
+- `src/lib/validation/repayment-schema.ts`: API 입력 검증
+- `src/lib/validation/budget-schema.ts`: 추가 상환 입력 검증
+
+### 3.4 Persistence
+- `src/hooks/use-debt-storage.ts`: 채무 로컬 저장/복원
+- `src/hooks/use-budget-storage.ts`: 추가 상환 로컬 저장/복원
+
+### 3.5 API
+- `src/app/api/v1/simulations/route.ts`: 전략 계산 API
+- `src/app/api/v1/health/route.ts`: 상태 확인 API
 
 ## 4. 데이터 흐름
-1. 사용자가 채무/예산 입력
-2. Validation Layer에서 입력 검증
-3. Application Layer가 전략별 시뮬레이션 요청
-4. Domain Engine이 월 단위 계산 수행
-5. 결과를 UI에 비교 형태로 표시
+1. 사용자가 채무/추가 상환 입력
+2. 폼 스키마 검증 후 상태 반영
+3. `simulateStrategy`를 Avalanche/Snowball로 실행
+4. 결과(`totalInterest`, `totalFeesPaid`, `netSavings`, `monthsToPayoff`, `monthlyPlans`) 생성
+5. 전략 비교 카드와 월별표 렌더링
 
 ## 5. 계산 원칙
-- 금액은 정수 단위(원)로 처리
-- 월 이자는 고정된 정책으로 계산(연이율/12)
-- 동일 입력 시 동일 결과 보장(결정적 계산)
-- 수수료는 조기상환 시 순효과(절감이자 - 수수료) 기준 반영
+- 금액은 KRW 정수로 처리(`toKrw`)
+- 이자 계산은 월 단위(연이율/12)
+- 상환 방식별 필수 납입액 계산 후 남은 예산으로 추가 상환 배분
+- 추가 상환 시 수수료를 별도 집계하고 순절감액 계산에 반영
+- 최대 1200개월 안전 제한, 미완납 시 `UNPAYOFFABLE_SCENARIO` 예외
 
-## 6. 확장 포인트
-- 전략 추가(예: 혼합 전략)
-- 저장소 계층 교체(LocalStorage -> DB)
-- 사용자 계정/동기화 기능 확장
+## 6. 테스트 전략
+- 단위: 엔진/정렬/유틸 함수 정확성
+- 회귀: 시드 기반 매트릭스 테스트로 장기 안정성 검증
+- E2E: 사용자 핵심 플로우(입력-계산-결과) 검증
+
+## 7. 확장 포인트
+- 결과 영속 저장 및 조회 API 추가
+- 계정 기반 시나리오 동기화
+- 전략 설명형 리포트(왜 이 전략이 유리한지) 강화

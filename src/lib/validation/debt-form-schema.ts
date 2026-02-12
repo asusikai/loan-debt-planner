@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { DebtFormValues } from "@/app/components/debt-form";
 
-const MAX_BALANCE = 999_999_999;
+const MAX_BALANCE = 10_000_000_000;
 
 const requiredString = (label: string) =>
   z
@@ -39,6 +39,20 @@ const optionalMonthsString = z
     message: "만기 잔여 개월 수는 1 이상의 정수여야 합니다.",
   });
 
+const optionalGraceMonthsString = z
+  .string()
+  .trim()
+  .refine((value) => {
+    if (value === "") {
+      return true;
+    }
+
+    const numberValue = Number(value);
+    return Number.isInteger(numberValue) && numberValue >= 0;
+  }, {
+    message: "거치 기간은 0 이상의 정수여야 합니다.",
+  });
+
 const repaymentTypeSchema = z.enum(["bullet", "equalPrincipal", "equalInstallment"]);
 
 export const debtFormSchema = z
@@ -47,13 +61,14 @@ export const debtFormSchema = z
     balance: requiredString("잔액").refine((value) => {
       const numberValue = Number(value);
       return Number.isInteger(numberValue) && numberValue > 0 && numberValue <= MAX_BALANCE;
-    }, "잔액은 1~999,999,999 사이 정수여야 합니다."),
+    }, "잔액은 1~10,000,000,000 사이 정수여야 합니다."),
     annualRatePercent: requiredString("연이율").refine((value) => {
       const numberValue = Number(value);
       return Number.isFinite(numberValue) && numberValue >= 0 && numberValue <= 100;
     }, "연이율은 0~100 사이 값이어야 합니다."),
     repaymentType: repaymentTypeSchema,
     maturityMonths: optionalMonthsString,
+    graceMonths: optionalGraceMonthsString,
     prepaymentFeeRatePercent: optionalPercentString,
   })
   .superRefine((value, ctx) => {
@@ -62,6 +77,31 @@ export const debtFormSchema = z
         code: z.ZodIssueCode.custom,
         path: ["maturityMonths"],
         message: "원금만기일시상환은 만기 잔여 개월 수가 필요합니다.",
+      });
+    }
+
+    if (value.repaymentType === "bullet" && value.graceMonths.trim() !== "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["graceMonths"],
+        message: "원금만기일시상환은 거치 기간을 설정할 수 없습니다.",
+      });
+    }
+
+    const maturityMonths = value.maturityMonths.trim() === "" ? undefined : Number(value.maturityMonths);
+    const graceMonths = value.graceMonths.trim() === "" ? undefined : Number(value.graceMonths);
+
+    if (
+      maturityMonths !== undefined &&
+      graceMonths !== undefined &&
+      Number.isFinite(maturityMonths) &&
+      Number.isFinite(graceMonths) &&
+      graceMonths >= maturityMonths
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["graceMonths"],
+        message: "거치 기간은 만기 잔여 개월 수보다 작아야 합니다.",
       });
     }
   });

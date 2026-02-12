@@ -67,12 +67,18 @@ pnpm build
 - API 명세: `doc/api-spec.md`
 - DB 설계: `doc/db-design.md`
 - 에러 정책: `doc/error-policy.md`
+- Vercel 배포 가이드: `doc/vercel-deployment.md`
 
 ### 내부 고도화 문서
 
 - 개선 로그: `doc/improvement-log.md`
 - AI 협업 로그: `doc/ai-collaboration-log.md`
 - 추적성 매트릭스: `doc/traceability-matrix.md`
+
+### 제출 문서
+
+- 기획서(제출용): `doc/submission-planning.md`
+- 개발문서(제출용): `doc/submission-development.md`
 
 ## 핵심 엔진 동작 요약
 
@@ -85,6 +91,6 @@ pnpm build
 - 권장 배포 플랫폼: Vercel
 - 기본 배포 절차
   1. 저장소 연결 후 프레임워크를 Next.js로 선택
-  2. Install Command: `pnpm install`
+  2. Install Command: `pnpm install --frozen-lockfile`
   3. Build Command: `pnpm build`
-  4. Output 설정은 Next.js 기본값 사용
+  4. Output Directory는 비워두고 Next.js 기본값 사용
