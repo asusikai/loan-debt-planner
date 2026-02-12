@@ -75,6 +75,11 @@ pnpm build
 - AI 협업 로그: `doc/ai-collaboration-log.md`
 - 추적성 매트릭스: `doc/traceability-matrix.md`
 
+### 제출 문서
+
+- 기획서(제출용): `doc/submission-planning.md`
+- 개발문서(제출용): `doc/submission-development.md`
+
 ## 핵심 엔진 동작 요약
 
 - 수수료 반영: 추가 상환 시 수수료(`prepaymentFeeRate`, `feeExemptionMonths`)를 별도 집계하여 `totalFeesPaid`, `netSavings` 산출
