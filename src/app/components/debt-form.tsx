@@ -261,7 +261,7 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         ) : null}
       </label>
       <label htmlFor="debt-grace-months">
-        거치 기간(개월, 선택 · 원금만기일시상환 불가)
+        거치 기간(개월, 선택)
         <input
           id="debt-grace-months"
           type="number"
@@ -275,6 +275,9 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
           aria-describedby={getFieldError("graceMonths") ? "debt-grace-months-error" : undefined}
           placeholder="예: 6"
         />
+        {values.repaymentType === "bullet" ? (
+          <p className="field-warning">원금만기일시상환은 거치 기간을 설정할 수 없습니다.</p>
+        ) : null}
         {getFieldError("graceMonths") ? (
           <p id="debt-grace-months-error" className="field-error" role="alert">
             {getFieldError("graceMonths")}
