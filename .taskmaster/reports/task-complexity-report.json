@@ -1,0 +1,85 @@
+{
+	"meta": {
+		"generatedAt": "2026-02-11T15:32:02.012Z",
+		"tasksAnalyzed": 9,
+		"totalTasks": 19,
+		"analysisCount": 9,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 11,
+			"taskTitle": "중도상환수수료 반영 시뮬레이션 엔진 및 테스트 고도화",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Task 11의 중도상환수수료 기능을 구현하기 위해 (1) Debt 인터페이스 및 Zod 스키마 확장, (2) 슬라이딩 방식 수수료 계산 유틸리티 함수 개발, (3) SimulationEngine 내 수수료 차감 및 순 이익(netSavings) 계산 로직 통합, (4) 수수료 면제 기간 경계값 테스트 케이스 작성을 포함하는 세부 작업을 생성해줘.",
+			"reasoning": "기존 시뮬레이션의 핵심 계산 수식을 수정해야 하며, 수수료 면제 기간과 슬라이딩 요율 등 복합적인 조건문이 포함되어 로직의 정밀도가 요구됩니다. 또한 결과 객체 구조 변경에 따른 영향도가 큽니다."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "상환 전략 정렬 로직 고도화: 0% 금리 및 만기 임박 기준 반영",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Task 12를 위해 (1) 만기일(maturityDate) 필드 타입 정의 및 입력 폼 수정, (2) SortProvider 클래스 설계를 통한 정렬 로직 캡슐화, (3) 다중 조건 정렬(Tie-breaker) 및 0% 금리 후순위 필터링 구현, (4) 정렬 결과의 안정성 검증을 위한 단위 테스트 구성을 세부 작업으로 나누어줘.",
+			"reasoning": "단순 정렬에서 다중 조건 정렬로의 로직 복잡도 증가와 함께, 기존 엔진 내부 로직을 SortProvider로 추출하는 리팩토링 작업이 동반되므로 신중한 접근이 필요합니다."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "월별 상환표의 월말 총 잔액 집계 로직 수정 및 검증",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Task 13의 정합성 문제를 해결하기 위해 (1) 모든 화폐 연산의 정수 처리 또는 소수점 고정(Fixed-point) 유틸리티 도입, (2) 수수료가 원금 잔액 감소에 영향을 주지 않도록 하는 회계적 분리 구현, (3) 마지막 상환 회차의 부동 소수점 오차 보정 로직 추가를 세부 작업으로 생성해줘.",
+			"reasoning": "금융 앱에서 부동 소수점 오차는 누적될 경우 큰 차이를 만듭니다. 수수료 지출과 원금 상환을 명확히 구분하여 집계하는 논리적 엄밀함이 핵심입니다."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "상환 엔진 테스트 스위트 확장 및 고도화된 시나리오 검증",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Task 14의 테스트 자동화를 위해 (1) 다양한 수수료율 및 금리 조합을 포함한 테스트 데이터 팩토리 생성, (2) '총부채 불변의 법칙' 기반의 자동화 검증 스크립트 작성, (3) 대규모 상환 시나리오의 회귀 테스트 수행을 세부 작업으로 나누어줘.",
+			"reasoning": "기존 로직과 신규 로직이 충돌하지 않음을 보장해야 하며, 특히 고도화된 시나리오(수수료 > 절감액)에서의 예외 처리를 검증하는 것이 필수적입니다."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "src/app/page.tsx 내 useEffect 의존성 경고(react-hooks/exhaustive-deps) 해소",
+			"complexityScore": 4,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Task 15의 Hook 최적화를 위해 (1) page.tsx 내 함수들을 useCallback으로 래핑하여 참조 무결성 확보, (2) useEffect 내 불필요한 의존성 제거 및 functional update 패턴 적용을 세부 작업으로 구성해줘.",
+			"reasoning": "단순한 경고 제거를 넘어, 잘못된 의존성 추가로 인한 무한 루프나 불필요한 시뮬레이션 재실행을 방지해야 하므로 React 렌더링 사이클에 대한 깊은 이해가 필요합니다."
+		},
+		{
+			"taskId": 16,
+			"taskTitle": "개선 과정 기록 문서(doc/improvement-log.md) 작성",
+			"complexityScore": 2,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "이 태스크는 기술적 변경 사항을 문서화하는 작업이므로 하위 작업 생성이 필요하지 않습니다.",
+			"reasoning": "코드 구현이 아닌 기록 중심의 태스크로 난이도가 낮으나, 기술적 의사결정 과정을 논리적으로 서술하는 것이 중요합니다."
+		},
+		{
+			"taskId": 17,
+			"taskTitle": "AI 협업 기록 문서(doc/ai-collaboration-log.md) 작성",
+			"complexityScore": 2,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "이 태스크는 AI와의 협업 이력을 정리하는 문서화 작업이므로 하위 작업 생성이 필요하지 않습니다.",
+			"reasoning": "프롬프트 기록 및 AI 제안 코드의 검증 과정을 정리하는 작업으로, 기술적 도전보다는 기록의 충실도가 핵심입니다."
+		},
+		{
+			"taskId": 18,
+			"taskTitle": "평가 항목 추적 매트릭스(doc/traceability-matrix.md) 작성",
+			"complexityScore": 2,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "이 태스크는 요구사항과 구현물 간의 연결 고리를 매핑하는 작업이므로 하위 작업 생성이 필요하지 않습니다.",
+			"reasoning": "프로젝트의 완성도를 점검하는 최종 검토 성격의 문서 작업입니다."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "README.md 기술 문서 보강 및 프로젝트 가이드라인 통합",
+			"complexityScore": 2,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "이 태스크는 프로젝트의 메인 가이드를 최신화하는 작업이므로 하위 작업 생성이 필요하지 않습니다.",
+			"reasoning": "최종 사용자 및 개발자를 위한 설치/실행 가이드와 내부 문서 링크를 정리하는 마무리 단계입니다."
+		}
+	]
+}

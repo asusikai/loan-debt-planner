@@ -45,7 +45,7 @@
 | annual_rate | numeric(6,5) | NOT NULL, CHECK >= 0 | 연이율(0~1) |
 | minimum_payment | integer | NOT NULL, CHECK >= 0 | 최소납입액 |
 | prepayment_fee_rate | numeric(6,5) | NOT NULL DEFAULT 0 | 중도상환수수료율 |
-| maturity_date | date | NULL 가능 | 만기일 |
+| maturity_months | integer | NULL 가능, CHECK > 0 | 만기까지 남은 개월 수 |
 
 ### 4.4 simulation_results
 | 컬럼 | 타입 | 제약 | 설명 |
