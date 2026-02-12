@@ -80,10 +80,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: Deb
           <tbody>
             {debts.map((debt) => (
               <tr key={debt.id}>
-                <td
-                  id={`debt-anchor-${debt.id}`}
-                  tabIndex={focusDebtId === debt.id ? -1 : undefined}
-                >
+                <td id={`debt-anchor-${debt.id}`}>
                   {debt.name}
                 </td>
                 <td>{formatCurrency(debt.balance)}</td>
@@ -93,7 +90,12 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: Deb
                 <td>{formatMaturityMonths(debt.graceMonths)}</td>
                 <td>{formatRate(debt.prepaymentFeeRate)}</td>
                 <td>
-                  <button type="button" className="small" onClick={() => onEdit(debt.id)}>
+                  <button
+                    id={`debt-focus-target-${debt.id}`}
+                    type="button"
+                    className="small"
+                    onClick={() => onEdit(debt.id)}
+                  >
                     수정
                   </button>
                   <button
@@ -113,7 +115,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: Deb
       <div className="debt-cards-mobile" style={{ marginTop: 16 }}>
         {debts.map((debt) => (
           <article className="debt-card" key={`card-${debt.id}`}>
-            <h3 id={`debt-anchor-mobile-${debt.id}`} tabIndex={focusDebtId === debt.id ? -1 : undefined}>{debt.name}</h3>
+            <h3 id={`debt-anchor-mobile-${debt.id}`}>{debt.name}</h3>
             <p>
               잔액: <strong>{formatCurrency(debt.balance)}</strong>
             </p>
@@ -123,7 +125,11 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: Deb
             <p>거치 기간: {formatMaturityMonths(debt.graceMonths)}</p>
             <p>중도상환수수료율: {formatRate(debt.prepaymentFeeRate)}</p>
             <div className="debt-card-actions">
-              <button type="button" onClick={() => onEdit(debt.id)}>
+              <button
+                id={`debt-focus-target-mobile-${debt.id}`}
+                type="button"
+                onClick={() => onEdit(debt.id)}
+              >
                 수정
               </button>
               <button

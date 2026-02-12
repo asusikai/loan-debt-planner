@@ -108,16 +108,16 @@ function HomePageContent() {
       return;
     }
 
-    const desktopAnchor = document.getElementById(`debt-anchor-${focusDebtId}`) as HTMLElement | null;
-    const mobileAnchor = document.getElementById(`debt-anchor-mobile-${focusDebtId}`) as HTMLElement | null;
-    const anchor = desktopAnchor ?? mobileAnchor;
+    const desktopTarget = document.getElementById(`debt-focus-target-${focusDebtId}`) as HTMLElement | null;
+    const mobileTarget = document.getElementById(`debt-focus-target-mobile-${focusDebtId}`) as HTMLElement | null;
+    const target = desktopTarget ?? mobileTarget;
 
-    if (!anchor) {
+    if (!target) {
       return;
     }
 
-    anchor.scrollIntoView({ behavior: "smooth", block: "center" });
-    anchor.focus();
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    target.focus();
     setFocusDebtId(null);
   }, [debts, focusDebtId]);
 

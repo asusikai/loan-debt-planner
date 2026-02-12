@@ -57,6 +57,7 @@ function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
 }
 
 export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormProps) {
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
   const balanceInputRef = useRef<HTMLInputElement | null>(null);
   const [values, setValues] = useState<DebtFormValues>(initialValues);
   const [errors, setErrors] = useState<DebtFormErrors>({});
@@ -71,12 +72,13 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
   }, [initialValues]);
 
   useEffect(() => {
-    if (mode !== "edit") {
+    if (mode === "edit") {
+      balanceInputRef.current?.focus();
+      balanceInputRef.current?.select();
       return;
     }
 
-    balanceInputRef.current?.focus();
-    balanceInputRef.current?.select();
+    nameInputRef.current?.focus();
   }, [mode, initialValues]);
 
   useEffect(() => {
@@ -141,6 +143,7 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         채무명 *
         <input
           id="debt-name"
+          ref={nameInputRef}
           value={values.name}
           onChange={(event) => updateField("name", event.target.value)}
           onBlur={() => markTouched("name")}
