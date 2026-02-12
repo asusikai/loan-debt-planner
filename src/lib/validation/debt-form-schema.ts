@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { DebtFormValues } from "@/app/components/debt-form";
 
-const MAX_BALANCE = 999_999_999;
+const MAX_BALANCE = 10_000_000_000;
 
 const requiredString = (label: string) =>
   z
@@ -61,7 +61,7 @@ export const debtFormSchema = z
     balance: requiredString("잔액").refine((value) => {
       const numberValue = Number(value);
       return Number.isInteger(numberValue) && numberValue > 0 && numberValue <= MAX_BALANCE;
-    }, "잔액은 1~999,999,999 사이 정수여야 합니다."),
+    }, "잔액은 1~10,000,000,000 사이 정수여야 합니다."),
     annualRatePercent: requiredString("연이율").refine((value) => {
       const numberValue = Number(value);
       return Number.isFinite(numberValue) && numberValue >= 0 && numberValue <= 100;
