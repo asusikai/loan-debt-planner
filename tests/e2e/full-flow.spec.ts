@@ -36,6 +36,7 @@ test("상태 초기화 버튼으로 입력 상태 복구", async ({ page }) => {
 
   await page.getByLabel(/추가 상환\(원, 선택\)/).fill("123456");
   await page.getByRole("button", { name: "상태 초기화" }).click();
+  await page.getByRole("button", { name: "예" }).click();
 
   await expect(page.getByLabel(/추가 상환\(원, 선택\)/)).toHaveValue("");
   await expect(page.getByText("채무가 없습니다. 첫 채무를 추가해 시작하세요.")).toBeVisible();

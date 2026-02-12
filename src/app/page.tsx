@@ -52,6 +52,8 @@ function HomePageContent() {
   const [recommendation, setRecommendation] = useState<RecommendationResult | null>(null);
   const [debtPendingDeletion, setDebtPendingDeletion] = useState<EditableDebt | null>(null);
   const [deleteTriggerButton, setDeleteTriggerButton] = useState<HTMLButtonElement | null>(null);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [resetTriggerButton, setResetTriggerButton] = useState<HTMLButtonElement | null>(null);
   const [results, setResults] = useState<{
     avalanche: StrategyResult;
     snowball: StrategyResult;
@@ -290,7 +292,7 @@ function HomePageContent() {
     setErrorMessage("");
   }, []);
 
-  const handleResetState = useCallback(() => {
+  const executeResetState = useCallback(() => {
     setDebts(initialDebts);
     setFocusDebtId(null);
     setFormMode(null);
@@ -304,6 +306,20 @@ function HomePageContent() {
     clearBudgetConfig();
     pushToast("입력 상태가 초기화되었습니다.", "success");
   }, [clearBudgetConfig, pushToast, setDebts]);
+
+  const requestResetState = useCallback((trigger: HTMLButtonElement) => {
+    setResetTriggerButton(trigger);
+    setIsResetConfirmOpen(true);
+  }, []);
+
+  const cancelResetState = useCallback(() => {
+    setIsResetConfirmOpen(false);
+  }, []);
+
+  const confirmResetState = useCallback(() => {
+    setIsResetConfirmOpen(false);
+    executeResetState();
+  }, [executeResetState]);
 
   const handleCalculate = useCallback(() => {
     try {
@@ -354,7 +370,11 @@ function HomePageContent() {
     <main>
       <h1>DebtPilot</h1>
       <p className="muted">채무 입력 후 상환 전략을 비교해 총이자와 완납 기간을 확인하세요.</p>
-      <button type="button" className="ghost small" onClick={handleResetState}>
+      <button
+        type="button"
+        className="ghost small"
+        onClick={(event) => requestResetState(event.currentTarget)}
+      >
         상태 초기화
       </button>
       {storageWarning ? (
@@ -450,6 +470,16 @@ function HomePageContent() {
         onConfirm={confirmDeleteDebt}
         onCancel={cancelDeleteDebt}
         restoreFocusTo={deleteTriggerButton}
+      />
+      <ConfirmationDialog
+        isOpen={isResetConfirmOpen}
+        title="상태 초기화 확인"
+        description="모든 데이터가 초기화 됩니다"
+        confirmLabel="예"
+        cancelLabel="아니오"
+        onConfirm={confirmResetState}
+        onCancel={cancelResetState}
+        restoreFocusTo={resetTriggerButton}
       />
       <ErrorModal
         open={errorModal.open}
