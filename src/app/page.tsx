@@ -43,6 +43,7 @@ function HomePageContent() {
   const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [focusDebtId, setFocusDebtId] = useState<string | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [extraPayment, setExtraPayment] = useState("");
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
@@ -99,6 +100,24 @@ function HomePageContent() {
       clearBudgetConfig();
     }
   }, [debts.length, clearBudgetConfig]);
+
+  useEffect(() => {
+    if (!focusDebtId) {
+      return;
+    }
+
+    const desktopAnchor = document.getElementById(`debt-anchor-${focusDebtId}`) as HTMLElement | null;
+    const mobileAnchor = document.getElementById(`debt-anchor-mobile-${focusDebtId}`) as HTMLElement | null;
+    const anchor = desktopAnchor ?? mobileAnchor;
+
+    if (!anchor) {
+      return;
+    }
+
+    anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+    anchor.focus();
+    setFocusDebtId(null);
+  }, [debts, focusDebtId]);
 
   const totalMinimum = useMemo(
     () => calculateMinimumRequiredMonthlyBudget(debts),
@@ -218,7 +237,12 @@ function HomePageContent() {
           : undefined,
     };
 
+    const isCreating = editingId === null;
+
     upsertDebt(payload);
+    if (isCreating) {
+      setFocusDebtId(payload.id);
+    }
 
     setErrorMessage("");
     resetForm();
@@ -268,6 +292,7 @@ function HomePageContent() {
 
   const handleResetState = useCallback(() => {
     setDebts(initialDebts);
+    setFocusDebtId(null);
     setFormMode(null);
     setExtraPayment("");
     setResults(null);
@@ -349,6 +374,7 @@ function HomePageContent() {
             onEdit={handleEditDebt}
             onDelete={requestDeleteDebt}
             onAddNew={handleAddDebt}
+            focusDebtId={focusDebtId}
           />
 
           {formMode ? (

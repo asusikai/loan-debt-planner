@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { ReactNode } from "react";
 
@@ -57,6 +57,7 @@ function areEqual(left: DebtFormValues, right: DebtFormValues): boolean {
 }
 
 export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormProps) {
+  const balanceInputRef = useRef<HTMLInputElement | null>(null);
   const [values, setValues] = useState<DebtFormValues>(initialValues);
   const [errors, setErrors] = useState<DebtFormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<DebtFormField, boolean>>>({});
@@ -68,6 +69,15 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
     setTouched({});
     setSubmitAttempted(false);
   }, [initialValues]);
+
+  useEffect(() => {
+    if (mode !== "edit") {
+      return;
+    }
+
+    balanceInputRef.current?.focus();
+    balanceInputRef.current?.select();
+  }, [mode, initialValues]);
 
   useEffect(() => {
     const hasTouchedField = Object.values(touched).some(Boolean);
@@ -149,6 +159,7 @@ export function DebtForm({ mode, initialValues, onSubmit, onCancel }: DebtFormPr
         잔액(원) *
         <input
           id="debt-balance"
+          ref={balanceInputRef}
           type="number"
           value={values.balance}
           onChange={(event) => updateField("balance", event.target.value)}

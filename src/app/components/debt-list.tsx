@@ -5,6 +5,7 @@ type DebtListProps = {
   onEdit: (id: string) => void;
   onDelete: (debt: EditableDebt, trigger: HTMLButtonElement) => void;
   onAddNew?: () => void;
+  focusDebtId?: string | null;
 };
 
 function formatCurrency(value: number): string {
@@ -39,7 +40,7 @@ function formatRepaymentType(value: EditableDebt["repaymentType"]): string {
   return "원리금균등상환";
 }
 
-export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
+export function DebtList({ debts, onEdit, onDelete, onAddNew, focusDebtId }: DebtListProps) {
   if (debts.length === 0) {
     return (
       <div className="debt-empty-state" style={{ marginTop: 16 }}>
@@ -79,7 +80,12 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
           <tbody>
             {debts.map((debt) => (
               <tr key={debt.id}>
-                <td>{debt.name}</td>
+                <td
+                  id={`debt-anchor-${debt.id}`}
+                  tabIndex={focusDebtId === debt.id ? -1 : undefined}
+                >
+                  {debt.name}
+                </td>
                 <td>{formatCurrency(debt.balance)}</td>
                 <td>{formatRate(debt.annualRate)}</td>
                 <td>{formatRepaymentType(debt.repaymentType)}</td>
@@ -107,7 +113,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
       <div className="debt-cards-mobile" style={{ marginTop: 16 }}>
         {debts.map((debt) => (
           <article className="debt-card" key={`card-${debt.id}`}>
-            <h3>{debt.name}</h3>
+            <h3 id={`debt-anchor-mobile-${debt.id}`} tabIndex={focusDebtId === debt.id ? -1 : undefined}>{debt.name}</h3>
             <p>
               잔액: <strong>{formatCurrency(debt.balance)}</strong>
             </p>
