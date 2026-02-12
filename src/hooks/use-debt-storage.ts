@@ -33,6 +33,7 @@ function normalizeEditableDebt(value: unknown): EditableDebt | null {
     annualRate: debt.annualRate,
     repaymentType,
     maturityMonths: typeof debt.maturityMonths === "number" ? debt.maturityMonths : undefined,
+    graceMonths: typeof debt.graceMonths === "number" ? debt.graceMonths : undefined,
     prepaymentFeeRate: typeof debt.prepaymentFeeRate === "number" ? debt.prepaymentFeeRate : undefined,
     feeExemptionMonths: typeof debt.feeExemptionMonths === "number" ? debt.feeExemptionMonths : undefined,
   };

@@ -71,6 +71,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
               <th>연이율</th>
               <th>상환 방식</th>
               <th>만기 잔여 개월</th>
+              <th>거치 기간</th>
               <th>중도상환수수료율</th>
               <th>액션</th>
             </tr>
@@ -83,6 +84,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
                 <td>{formatRate(debt.annualRate)}</td>
                 <td>{formatRepaymentType(debt.repaymentType)}</td>
                 <td>{formatMaturityMonths(debt.maturityMonths)}</td>
+                <td>{formatMaturityMonths(debt.graceMonths)}</td>
                 <td>{formatRate(debt.prepaymentFeeRate)}</td>
                 <td>
                   <button type="button" className="small" onClick={() => onEdit(debt.id)}>
@@ -112,6 +114,7 @@ export function DebtList({ debts, onEdit, onDelete, onAddNew }: DebtListProps) {
             <p>연이율: {formatRate(debt.annualRate)}</p>
             <p>상환 방식: {formatRepaymentType(debt.repaymentType)}</p>
             <p>만기 잔여 개월: {formatMaturityMonths(debt.maturityMonths)}</p>
+            <p>거치 기간: {formatMaturityMonths(debt.graceMonths)}</p>
             <p>중도상환수수료율: {formatRate(debt.prepaymentFeeRate)}</p>
             <div className="debt-card-actions">
               <button type="button" onClick={() => onEdit(debt.id)}>

@@ -91,6 +91,33 @@ describe("simulateStrategy", () => {
     expect(secondMonth?.interestAmount).toBeLessThan(firstMonth?.interestAmount ?? Number.POSITIVE_INFINITY);
   });
 
+  it("applies interest-only payments during grace period", () => {
+    const result = simulateStrategy(
+      {
+        extraPayment: 0,
+        debts: [
+          {
+            name: "grace-loan",
+            balance: 1_200_000,
+            annualRate: 0.12,
+            repaymentType: "equalInstallment",
+            maturityMonths: 12,
+            graceMonths: 2,
+          },
+        ],
+      },
+      "avalanche",
+    );
+
+    const month1 = result.monthlyPlans.find((item) => item.monthIndex === 1 && item.debtName === "grace-loan");
+    const month2 = result.monthlyPlans.find((item) => item.monthIndex === 2 && item.debtName === "grace-loan");
+    const month3 = result.monthlyPlans.find((item) => item.monthIndex === 3 && item.debtName === "grace-loan");
+
+    expect(month1?.principalAmount).toBe(0);
+    expect(month2?.principalAmount).toBe(0);
+    expect((month3?.principalAmount ?? 0) > 0).toBe(true);
+  });
+
   it("avalanche and snowball produce different payoff order for mixed debts", () => {
     const input: ScenarioInput = {
       extraPayment: 50_000,
@@ -224,7 +251,7 @@ describe("simulateStrategy", () => {
     expect(result.netSavings).toBeLessThan(0);
   });
 
-  it("keeps monthly remaining balance identical regardless of fee amount", () => {
+  it("reduces extra principal when fee is charged", () => {
     const withFee = simulateStrategy(
       {
         extraPayment: 150000,
@@ -280,9 +307,11 @@ describe("simulateStrategy", () => {
     );
 
     expect(withFee.totalFeesPaid).toBeGreaterThan(0);
-    expect(monthEndRemainingTotals(withFee.monthlyPlans)).toEqual(
-      monthEndRemainingTotals(withoutFee.monthlyPlans),
-    );
+
+    const withFeeTotals = monthEndRemainingTotals(withFee.monthlyPlans);
+    const withoutFeeTotals = monthEndRemainingTotals(withoutFee.monthlyPlans);
+    expect(withFeeTotals[0]).toBeGreaterThan(withoutFeeTotals[0] ?? 0);
+    expect(withFee.monthsToPayoff).toBeGreaterThanOrEqual(withoutFee.monthsToPayoff);
   });
 
   it("ends on exact payoff month without trailing plan rows", () => {

@@ -27,6 +27,7 @@ const emptyForm: DebtFormValues = {
   annualRatePercent: "",
   repaymentType: "equalInstallment",
   maturityMonths: "",
+  graceMonths: "",
   prepaymentFeeRatePercent: "",
 };
 
@@ -127,6 +128,12 @@ function HomePageContent() {
       annualRatePercent: (editingDebt.annualRate * 100).toFixed(2),
       repaymentType: editingDebt.repaymentType,
       maturityMonths: editingDebt.maturityMonths !== undefined ? String(editingDebt.maturityMonths) : "",
+      graceMonths:
+        editingDebt.repaymentType === "bullet"
+          ? ""
+          : editingDebt.graceMonths !== undefined
+            ? String(editingDebt.graceMonths)
+            : "",
       prepaymentFeeRatePercent:
         editingDebt.prepaymentFeeRate !== undefined
           ? (editingDebt.prepaymentFeeRate * 100).toFixed(2)
@@ -147,6 +154,8 @@ function HomePageContent() {
     const maturityMonthsInput = formValues.maturityMonths.trim();
     const maturityMonths =
       maturityMonthsInput === "" ? undefined : Math.floor(toNumber(maturityMonthsInput));
+    const graceMonthsInput = formValues.graceMonths.trim();
+    const graceMonths = graceMonthsInput === "" ? undefined : Math.floor(toNumber(graceMonthsInput));
     const prepaymentFeeRatePercentInput = formValues.prepaymentFeeRatePercent.trim();
     const prepaymentFeeRatePercent =
       prepaymentFeeRatePercentInput === ""
@@ -171,6 +180,24 @@ function HomePageContent() {
       return;
     }
 
+    if (repaymentType === "bullet" && graceMonths !== undefined && graceMonths > 0) {
+      setErrorMessage("원금만기일시상환은 거치 기간을 설정할 수 없습니다.");
+      pushToast("원금만기일시상환에서는 거치 기간을 비워 주세요.", "warning");
+      return;
+    }
+
+    if (graceMonths !== undefined && graceMonths < 0) {
+      setErrorMessage("거치 기간은 0 이상이어야 합니다.");
+      pushToast("거치 기간 입력을 확인해 주세요.", "warning");
+      return;
+    }
+
+    if (maturityMonths !== undefined && graceMonths !== undefined && graceMonths >= maturityMonths) {
+      setErrorMessage("거치 기간은 만기 잔여 개월 수보다 작아야 합니다.");
+      pushToast("거치 기간/만기 입력을 확인해 주세요.", "warning");
+      return;
+    }
+
     if (prepaymentFeeRatePercent !== undefined && prepaymentFeeRatePercent < 0) {
       setErrorMessage("중도상환수수료율은 0 이상이어야 합니다.");
       pushToast("중도상환수수료율은 0 이상이어야 합니다.", "warning");
@@ -184,6 +211,7 @@ function HomePageContent() {
       annualRate: annualRatePercent / 100,
       repaymentType,
       maturityMonths,
+      graceMonths: repaymentType === "bullet" ? undefined : graceMonths,
       prepaymentFeeRate:
         prepaymentFeeRatePercent !== undefined
           ? prepaymentFeeRatePercent / 100
