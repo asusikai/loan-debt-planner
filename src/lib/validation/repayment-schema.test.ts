@@ -44,7 +44,6 @@ describe("repayment validation schema", () => {
 
   it("accepts valid scenario payload", () => {
     const parsed = scenarioSchema.parse({
-      monthlyBudget: 700_000,
       extraPayment: 100_000,
       debts: [
         {
@@ -57,7 +56,7 @@ describe("repayment validation schema", () => {
       ],
     });
 
-    expect(parsed.monthlyBudget).toBe(700_000);
+    expect(parsed.extraPayment).toBe(100_000);
     expect(parsed.debts).toHaveLength(1);
   });
 
@@ -85,21 +84,20 @@ describe("repayment validation schema", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects scenario when budget is below total required payment", () => {
-    expect(() =>
-      scenarioSchema.parse({
-        monthlyBudget: 50_000,
-        extraPayment: 0,
-        debts: [
-          {
-            name: "loan-a",
-            balance: 5_000_000,
-            annualRate: 0.12,
-            repaymentType: "equalInstallment",
-            maturityMonths: 24,
-          },
-        ],
-      }),
-    ).toThrow();
+  it("rejects scenario when extra payment is negative", () => {
+    const parsed = scenarioSchema.safeParse({
+      extraPayment: -1,
+      debts: [
+        {
+          name: "loan-a",
+          balance: 5_000_000,
+          annualRate: 0.12,
+          repaymentType: "equalInstallment",
+          maturityMonths: 24,
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(false);
   });
 });

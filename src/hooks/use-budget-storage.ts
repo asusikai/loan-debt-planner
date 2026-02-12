@@ -3,8 +3,12 @@ import { useCallback } from "react";
 const STORAGE_KEY = "debtpilot_budget_config";
 
 type BudgetConfig = {
-  monthlyBudget: string;
   extraPayment: string;
+};
+
+type LegacyBudgetConfig = {
+  monthlyBudget?: string;
+  extraPayment?: string;
 };
 
 function isValidNumberString(value: string): boolean {
@@ -24,17 +28,16 @@ export function useBudgetStorage() {
         return null;
       }
 
-      const parsed = JSON.parse(raw) as Partial<BudgetConfig>;
-      if (typeof parsed.monthlyBudget !== "string" || typeof parsed.extraPayment !== "string") {
+      const parsed = JSON.parse(raw) as LegacyBudgetConfig;
+      if (typeof parsed.extraPayment !== "string") {
         throw new Error("invalid budget storage format");
       }
 
-      if (!isValidNumberString(parsed.monthlyBudget) || !isValidNumberString(parsed.extraPayment)) {
+      if (!isValidNumberString(parsed.extraPayment)) {
         throw new Error("invalid budget values");
       }
 
       return {
-        monthlyBudget: parsed.monthlyBudget,
         extraPayment: parsed.extraPayment,
       };
     } catch (error) {

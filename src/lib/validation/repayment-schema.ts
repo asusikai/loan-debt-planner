@@ -22,16 +22,15 @@ export const debtSchema = z.object({
 
 export const scenarioSchema = z
   .object({
-    monthlyBudget: z.number().int().nonnegative(),
     extraPayment: z.number().int().nonnegative(),
     debts: z.array(debtSchema).min(1),
   })
   .superRefine((value, ctx) => {
     const minimumRequired = calculateMinimumRequiredMonthlyBudget(value.debts);
-    if (value.monthlyBudget < minimumRequired) {
+    if (!Number.isFinite(minimumRequired) || minimumRequired < 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `monthlyBudget must be >= minimum required ${minimumRequired}`,
+        message: "invalid required payment calculation",
       });
     }
   });

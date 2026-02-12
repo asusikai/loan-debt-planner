@@ -47,8 +47,6 @@ export type EditableDebt = Debt & { id: string };
  * Simulation input used by repayment engine.
  */
 export type ScenarioInput = {
-  /** Monthly repayment budget in KRW. */
-  monthlyBudget: number;
   /** Optional additional payment in KRW. */
   extraPayment: number;
   /** Debt set to simulate. */
@@ -61,10 +59,13 @@ export type ScenarioInput = {
 export type Scenario = {
   /** Debt set to simulate. */
   debts: Debt[];
-  /** Monthly repayment budget in KRW. */
-  monthlyBudget: number;
   /** Selected strategy in legacy uppercase format. */
   strategy: "SNOWBALL" | "AVALANCHE";
+};
+
+export type RecommendationResult = {
+  strategy: StrategyType;
+  extraPaymentOrder: string[];
 };
 
 /**

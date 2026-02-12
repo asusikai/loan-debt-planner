@@ -15,8 +15,9 @@ import { useBudgetStorage } from "@/hooks/use-budget-storage";
 import { useDebts } from "@/hooks/use-debts";
 import { useDebtStorage } from "@/hooks/use-debt-storage";
 import { simulateStrategy } from "@/lib/repayment/engine";
+import { recommendLowestInterestStrategy } from "@/lib/repayment/recommendation";
 import { calculateMinimumRequiredMonthlyBudget } from "@/lib/repayment/required-payment";
-import type { EditableDebt, StrategyResult } from "@/types/repayment";
+import type { EditableDebt, RecommendationResult, StrategyResult } from "@/types/repayment";
 
 const initialDebts: EditableDebt[] = [];
 
@@ -37,19 +38,15 @@ function toNumber(value: string): number {
   return parsed;
 }
 
-function toCurrency(value: number): string {
-  return `${value.toLocaleString()}원`;
-}
-
 function HomePageContent() {
   const { pushToast } = useToast();
   const { debts, setDebts, upsertDebt, removeDebt } = useDebts(initialDebts);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [monthlyBudget, setMonthlyBudget] = useState("");
   const [extraPayment, setExtraPayment] = useState("");
   const [selectedStrategy, setSelectedStrategy] = useState<"avalanche" | "snowball">(
     "avalanche",
   );
+  const [recommendation, setRecommendation] = useState<RecommendationResult | null>(null);
   const [debtPendingDeletion, setDebtPendingDeletion] = useState<EditableDebt | null>(null);
   const [deleteTriggerButton, setDeleteTriggerButton] = useState<HTMLButtonElement | null>(null);
   const [results, setResults] = useState<{
@@ -78,7 +75,6 @@ function HomePageContent() {
       return;
     }
 
-    setMonthlyBudget(storedBudgetConfig.monthlyBudget);
     setExtraPayment(storedBudgetConfig.extraPayment);
   }, [loadBudgetConfig]);
 
@@ -88,13 +84,13 @@ function HomePageContent() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      saveBudgetConfig({ monthlyBudget, extraPayment });
+      saveBudgetConfig({ extraPayment });
     }, 500);
 
     return () => {
       clearTimeout(timeout);
     };
-  }, [monthlyBudget, extraPayment, saveBudgetConfig]);
+  }, [extraPayment, saveBudgetConfig]);
 
   useEffect(() => {
     if (debts.length === 0) {
@@ -111,8 +107,8 @@ function HomePageContent() {
     selectedStrategy === "avalanche"
       ? results?.avalanche.monthlyPlans
       : results?.snowball.monthlyPlans;
-  const monthlyBudgetAmount = Math.floor(toNumber(monthlyBudget));
-  const canCompareStrategies = debts.length > 0 && monthlyBudgetAmount >= totalMinimum;
+  const extraPaymentAmount = Math.floor(toNumber(extraPayment));
+  const canCompareStrategies = debts.length > 0 && extraPaymentAmount >= 0;
 
   const editingDebt = useMemo(
     () => debts.find((debt) => debt.id === editingId) ?? null,
@@ -239,9 +235,9 @@ function HomePageContent() {
 
   const handleResetState = useCallback(() => {
     setDebts(initialDebts);
-    setMonthlyBudget("");
     setExtraPayment("");
     setResults(null);
+    setRecommendation(null);
     setErrorMessage("");
     setDebtPendingDeletion(null);
     setDeleteTriggerButton(null);
@@ -252,60 +248,48 @@ function HomePageContent() {
 
   const handleCalculate = useCallback(() => {
     try {
-      if (!canCompareStrategies) {
-        setErrorMessage("예산이 월 필수납입 합계를 충족해야 결과 계산이 가능합니다.");
-        pushToast("월 예산이 월 필수납입 합계를 충족해야 합니다.", "warning");
-        setErrorModal({
-          open: true,
-          title: "예산 부족",
-          message: `월 예산을 최소 ${toCurrency(totalMinimum)} 이상으로 설정해 주세요.`,
-        });
-        setResults(null);
-        return;
-      }
-
       if (debts.length === 0) {
         setErrorMessage("채무를 1개 이상 입력해 주세요.");
         pushToast("먼저 채무를 1개 이상 추가해 주세요.", "warning");
         setResults(null);
+        setRecommendation(null);
+        return;
+      }
+
+      if (extraPaymentAmount < 0) {
+        setErrorMessage("추가 상환 금액은 0 이상이어야 합니다.");
+        pushToast("추가 상환 금액을 확인해 주세요.", "warning");
+        setResults(null);
+        setRecommendation(null);
         return;
       }
 
       const scenario = {
-        monthlyBudget: monthlyBudgetAmount,
-        extraPayment: Math.floor(toNumber(extraPayment)),
+        extraPayment: extraPaymentAmount,
         debts: debts.map(({ id: _, ...debt }) => debt),
       };
 
       const avalanche = simulateStrategy(scenario, "avalanche");
       const snowball = simulateStrategy(scenario, "snowball");
+      const nextRecommendation = recommendLowestInterestStrategy({ avalanche, snowball });
 
       setResults({ avalanche, snowball });
+      setRecommendation(nextRecommendation);
+      setSelectedStrategy(nextRecommendation.strategy);
       setErrorMessage("");
       pushToast("전략 계산이 완료되었습니다.", "success");
     } catch (error) {
-      if (error instanceof Error && error.message === "BUDGET_BELOW_MINIMUM") {
-        setErrorMessage(
-          `월 상환 예산이 월 필수납입 합계(${toCurrency(totalMinimum)})보다 작습니다.`,
-        );
-        pushToast("월 상환 예산이 부족합니다.", "error");
-        setErrorModal({
-          open: true,
-          title: "계산 불가",
-          message: `월 상환 예산을 최소 ${toCurrency(totalMinimum)} 이상으로 입력해 주세요.`,
-        });
-      } else {
-        setErrorMessage("시뮬레이션 중 오류가 발생했습니다.");
-        pushToast("시뮬레이션 중 오류가 발생했습니다.", "error");
-        setErrorModal({
-          open: true,
-          title: "오류 발생",
-          message: "입력값을 확인한 뒤 다시 계산해 주세요.",
-        });
-      }
+      setErrorMessage("시뮬레이션 중 오류가 발생했습니다.");
+      pushToast("시뮬레이션 중 오류가 발생했습니다.", "error");
+      setErrorModal({
+        open: true,
+        title: "오류 발생",
+        message: "입력값을 확인한 뒤 다시 계산해 주세요.",
+      });
       setResults(null);
+      setRecommendation(null);
     }
-  }, [canCompareStrategies, debts, extraPayment, monthlyBudgetAmount, pushToast, totalMinimum]);
+  }, [debts, extraPaymentAmount, pushToast]);
 
   return (
     <main>
@@ -344,11 +328,9 @@ function HomePageContent() {
         <section className="card">
           <h2>전략 결과</h2>
           <BudgetForm
-            monthlyBudget={monthlyBudget}
             extraPayment={extraPayment}
             minimumRequired={totalMinimum}
             hasDebts={debts.length > 0}
-            onChangeMonthlyBudget={setMonthlyBudget}
             onChangeExtraPayment={setExtraPayment}
           />
           <button
@@ -360,7 +342,7 @@ function HomePageContent() {
             title={
               canCompareStrategies
                 ? ""
-                : "월 필수납입 합계를 충족하는 예산을 입력하면 활성화됩니다"
+                : "추가 상환 금액(0 이상)을 입력하면 활성화됩니다"
             }
           >
             결과 계산
@@ -373,6 +355,7 @@ function HomePageContent() {
               <StrategyComparison
                 results={results}
                 selectedStrategy={selectedStrategy}
+                recommendation={recommendation}
                 onSelectStrategy={setSelectedStrategy}
               />
               <div id="strategy-plan-table">

@@ -29,7 +29,6 @@ describe("simulateStrategy", () => {
   it("single debt should be payable", () => {
     const result = simulateStrategy(
       {
-        monthlyBudget: 300000,
         extraPayment: 0,
         debts: [
           {
@@ -48,51 +47,29 @@ describe("simulateStrategy", () => {
     expect(result.totalFeesPaid).toBe(0);
   });
 
-  it("throws when budget is below minimum", () => {
-    expect(() =>
-      simulateStrategy(
-        {
-          monthlyBudget: 100000,
-          extraPayment: 0,
-          debts: [
-            {
-              name: "single",
-              balance: 1200000,
-              annualRate: 0.12,
-              repaymentType: "equalInstallment",
-            },
-          ],
-        },
-        "snowball",
-      ),
-    ).toThrow("BUDGET_BELOW_MINIMUM");
-  });
+  it("handles bullet repayment with maturity payoff", () => {
+    const result = simulateStrategy(
+      {
+        extraPayment: 0,
+        debts: [
+          {
+            name: "bullet-loan",
+            balance: 1_000_000,
+            annualRate: 0.12,
+            repaymentType: "bullet",
+            maturityMonths: 2,
+          },
+        ],
+      },
+      "avalanche",
+    );
 
-  it("requires bullet maturity month payoff budget", () => {
-    expect(() =>
-      simulateStrategy(
-        {
-          monthlyBudget: 50_000,
-          extraPayment: 0,
-          debts: [
-            {
-              name: "bullet-loan",
-              balance: 1_000_000,
-              annualRate: 0.12,
-              repaymentType: "bullet",
-              maturityMonths: 2,
-            },
-          ],
-        },
-        "avalanche",
-      ),
-    ).toThrow("BUDGET_BELOW_MINIMUM");
+    expect(result.monthsToPayoff).toBe(2);
   });
 
   it("reflects principal-heavy reduction for equal principal", () => {
     const result = simulateStrategy(
       {
-        monthlyBudget: 600_000,
         extraPayment: 0,
         debts: [
           {
@@ -116,8 +93,7 @@ describe("simulateStrategy", () => {
 
   it("avalanche and snowball produce different payoff order for mixed debts", () => {
     const input: ScenarioInput = {
-      monthlyBudget: 550000,
-      extraPayment: 0,
+      extraPayment: 50_000,
       debts: [
         {
           name: "high-rate",
@@ -151,7 +127,6 @@ describe("simulateStrategy", () => {
   it("applies prepayment fee and reflects it in net savings", () => {
     const withFee = simulateStrategy(
       {
-        monthlyBudget: 500000,
         extraPayment: 100000,
         debts: [
           {
@@ -169,7 +144,6 @@ describe("simulateStrategy", () => {
 
     const withoutFee = simulateStrategy(
       {
-        monthlyBudget: 500000,
         extraPayment: 100000,
         debts: [
           {
@@ -192,7 +166,6 @@ describe("simulateStrategy", () => {
   it("applies fee right before exemption ends and removes it after exemption", () => {
     const beforeBoundary = simulateStrategy(
       {
-        monthlyBudget: 400000,
         extraPayment: 100000,
         debts: [
           {
@@ -210,7 +183,6 @@ describe("simulateStrategy", () => {
 
     const afterBoundary = simulateStrategy(
       {
-        monthlyBudget: 400000,
         extraPayment: 100000,
         debts: [
           {
@@ -233,7 +205,6 @@ describe("simulateStrategy", () => {
   it("can return negative net savings when fee outweighs interest savings", () => {
     const result = simulateStrategy(
       {
-        monthlyBudget: 250000,
         extraPayment: 10_000,
         debts: [
           {
@@ -256,7 +227,6 @@ describe("simulateStrategy", () => {
   it("keeps monthly remaining balance identical regardless of fee amount", () => {
     const withFee = simulateStrategy(
       {
-        monthlyBudget: 650000,
         extraPayment: 150000,
         debts: [
           {
@@ -284,7 +254,6 @@ describe("simulateStrategy", () => {
 
     const withoutFee = simulateStrategy(
       {
-        monthlyBudget: 650000,
         extraPayment: 150000,
         debts: [
           {
@@ -319,14 +288,14 @@ describe("simulateStrategy", () => {
   it("ends on exact payoff month without trailing plan rows", () => {
     const result = simulateStrategy(
       {
-        monthlyBudget: 300_000,
         extraPayment: 0,
         debts: [
           {
             name: "tiny",
             balance: 90_000,
             annualRate: 0,
-            repaymentType: "equalInstallment",
+            repaymentType: "equalPrincipal",
+            maturityMonths: 1,
           },
         ],
       },

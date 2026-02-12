@@ -7,7 +7,6 @@ import type { ScenarioInput } from "@/types/repayment";
 describe("verifyRepaymentInvariant", () => {
   it("passes for valid engine output", () => {
     const input: ScenarioInput = {
-      monthlyBudget: 650_000,
       extraPayment: 120_000,
       debts: [
         {
@@ -37,7 +36,6 @@ describe("verifyRepaymentInvariant", () => {
 
   it("detects tampered monthly plan data", () => {
     const input: ScenarioInput = {
-      monthlyBudget: 300_000,
       extraPayment: 0,
       debts: [
         {

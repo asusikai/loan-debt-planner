@@ -62,12 +62,7 @@ function simulateStrategyCore(
   strategy: StrategyType,
 ): SimulationCoreResult {
   const minimumRequired = calculateMinimumRequiredMonthlyBudget(input.debts);
-
-  if (input.monthlyBudget < minimumRequired) {
-    throw new Error("BUDGET_BELOW_MINIMUM");
-  }
-
-  const monthlyBudget = input.monthlyBudget + input.extraPayment;
+  const monthlyBudget = minimumRequired + input.extraPayment;
   const workingDebts: WorkingDebt[] = input.debts.map((debt) => ({
     ...debt,
     remainingBalance: debt.balance,
@@ -104,11 +99,7 @@ function simulateStrategyCore(
         debt.remainingBalance = 0;
       }
       totalInterest = toKrw(preciseAdd(totalInterest, required.interest));
-      const nextBudget = preciseSubtract(budgetLeft, payment);
-      if (nextBudget < 0) {
-        throw new Error("BUDGET_BELOW_MINIMUM");
-      }
-      budgetLeft = toKrw(nextBudget);
+      budgetLeft = toKrw(preciseSubtract(budgetLeft, payment));
 
       monthlyPlans.push({
         monthIndex,

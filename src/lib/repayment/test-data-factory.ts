@@ -1,7 +1,5 @@
 import type { Debt, ScenarioInput } from "@/types/repayment";
 
-import { calculateMinimumRequiredMonthlyBudget } from "@/lib/repayment/required-payment";
-
 type CreateScenarioOptions = {
   seed?: number;
   debtCount?: number;
@@ -82,11 +80,9 @@ export function createDebtFactory(options: CreateScenarioOptions = {}): Debt[] {
 
 export function createScenarioFactory(options: CreateScenarioOptions = {}): ScenarioInput {
   const debts = createDebtFactory(options);
-  const minimumRequired = calculateMinimumRequiredMonthlyBudget(debts);
 
   return {
     debts,
-    monthlyBudget: minimumRequired + 300_000,
     extraPayment: 100_000,
   };
 }

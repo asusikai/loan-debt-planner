@@ -1,4 +1,4 @@
-import type { StrategyResult, StrategyType } from "@/types/repayment";
+import type { RecommendationResult, StrategyResult, StrategyType } from "@/types/repayment";
 
 type StrategyComparisonProps = {
   results: {
@@ -6,6 +6,7 @@ type StrategyComparisonProps = {
     snowball: StrategyResult;
   };
   selectedStrategy: StrategyType;
+  recommendation: RecommendationResult | null;
   onSelectStrategy: (strategy: StrategyType) => void;
 };
 
@@ -16,13 +17,14 @@ function toCurrency(value: number): string {
 export function StrategyComparison({
   results,
   selectedStrategy,
+  recommendation,
   onSelectStrategy,
 }: StrategyComparisonProps) {
   const interestWinner =
     results.avalanche.totalInterest <= results.snowball.totalInterest ? "avalanche" : "snowball";
   const durationWinner =
     results.avalanche.monthsToPayoff <= results.snowball.monthsToPayoff ? "avalanche" : "snowball";
-  const recommendation =
+  const strategyTip =
     selectedStrategy === "avalanche"
       ? "Avalanche는 총 이자 비용을 줄이는 데 유리한 전략입니다."
       : "Snowball은 작은 채무부터 정리해 심리적 동기 부여에 유리합니다.";
@@ -70,7 +72,19 @@ export function StrategyComparison({
           Snowball 월별표
         </button>
       </div>
-      <p className="muted strategy-recommendation">추천: {recommendation}</p>
+      {recommendation ? (
+        <div className="strategy-recommendation">
+          <p className="muted">
+            자동 추천 전략: <strong>{recommendation.strategy === "avalanche" ? "Avalanche" : "Snowball"}</strong>
+          </p>
+          <p className="muted">
+            추가 상환 우선순위: {recommendation.extraPaymentOrder.length > 0
+              ? recommendation.extraPaymentOrder.join(" -> ")
+              : "추가 상환 없음"}
+          </p>
+        </div>
+      ) : null}
+      <p className="muted strategy-recommendation">추천: {strategyTip}</p>
     </>
   );
 }
